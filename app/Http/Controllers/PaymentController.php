@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Payment\CreatePaymentAction;
+use App\Actions\Payment\DeletePaymentAction;
 use App\Http\Requests\StorePaymentRequest;
 use App\Models\Invoice;
 use App\Models\Payment;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
@@ -63,5 +63,6 @@ class PaymentController extends Controller
             // Void the payment via action
             (new DeletePaymentAction)($payment);
             return back()->with('success', 'Payment voided successfully.');
+        });
     }
 }
