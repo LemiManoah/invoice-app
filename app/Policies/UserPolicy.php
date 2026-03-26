@@ -8,6 +8,26 @@ use App\Models\User;
 
 final readonly class UserPolicy
 {
+    public function viewAny(User $user): bool
+    {
+        return $user->can('users.view');
+    }
+
+    public function view(User $user, User $subject): bool
+    {
+        return $user->can('users.view');
+    }
+
+    public function create(User $user): bool
+    {
+        return $user->can('users.create');
+    }
+
+    public function update(User $user, User $subject): bool
+    {
+        return $user->can('users.update');
+    }
+
     public function updateProfile(User $user, User $subject): bool
     {
         return $user->is($subject) && $user->can('settings.profile.update');

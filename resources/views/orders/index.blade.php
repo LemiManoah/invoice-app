@@ -1,9 +1,11 @@
 <x-layouts.app title="Orders">
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Orders</h1>
-        <a href="{{ route('orders.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
-            <i class="fas fa-plus mr-2"></i> Create Order
-        </a>
+        @can('create', \App\Models\Order::class)
+            <a href="{{ route('orders.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
+                <i class="fas fa-plus mr-2"></i> Create Order
+            </a>
+        @endcan
     </div>
 
     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
@@ -47,12 +49,16 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex space-x-3">
-                                    <a href="{{ route('orders.show', $order) }}" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ route('orders.edit', $order) }}" class="text-yellow-600 hover:text-yellow-900">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
+                                    @can('view', $order)
+                                        <a href="{{ route('orders.show', $order) }}" class="text-gray-400 hover:text-gray-600 dark:hover:text-white" title="View order">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    @endcan
+                                    @can('update', $order)
+                                        <a href="{{ route('orders.edit', $order) }}" class="text-yellow-600 hover:text-yellow-900" title="Edit order">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

@@ -9,12 +9,16 @@
         </div>
         <div class="flex flex-wrap gap-2">
             @if($expense->status === 'valid')
-                <a href="{{ route('expenses.edit', $expense) }}" class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition">
-                    <i class="fas fa-edit mr-2"></i> Edit
-                </a>
-                <button type="button" @click="$dispatch('open-modal', 'void-expense')" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
-                    <i class="fas fa-ban mr-2"></i> Void
-                </button>
+                @can('update', $expense)
+                    <a href="{{ route('expenses.edit', $expense) }}" class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition">
+                        <i class="fas fa-edit mr-2"></i> Edit
+                    </a>
+                @endcan
+                @can('void', $expense)
+                    <button type="button" @click="$dispatch('open-modal', 'void-expense')" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
+                        <i class="fas fa-ban mr-2"></i> Void
+                    </button>
+                @endcan
             @endif
         </div>
     </div>
@@ -96,12 +100,13 @@
     </div>
 
     <!-- Void Expense Modal -->
-    <x-modal name="void-expense" maxWidth="md">
-        <form action="{{ route('expenses.void', $expense) }}" method="POST" class="p-6">
-            @csrf
-            <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                Void Expense
-            </h2>
+    @can('void', $expense)
+        <x-modal name="void-expense" maxWidth="md">
+            <form action="{{ route('expenses.void', $expense) }}" method="POST" class="p-6">
+                @csrf
+                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                    Void Expense
+                </h2>
 
             <div class="space-y-4">
                 <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -123,6 +128,7 @@
                     Confirm Void
                 </button>
             </div>
-        </form>
-    </x-modal>
+            </form>
+        </x-modal>
+    @endcan
 </x-layouts.app>

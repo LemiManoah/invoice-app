@@ -6,9 +6,11 @@
             </a>
             <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Measurement History</h1>
         </div>
-        <a href="{{ route('customers.measurements.create', $customer) }}" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
-            <i class="fas fa-plus mr-2"></i> Add Measurement
-        </a>
+        @can('create', \App\Models\Measurement::class)
+            <a href="{{ route('customers.measurements.create', $customer) }}" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
+                <i class="fas fa-plus mr-2"></i> Add Measurement
+            </a>
+        @endcan
     </div>
 
     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
@@ -29,7 +31,16 @@
                         <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ $measurement->chest ?? '-' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ $measurement->waist ?? '-' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{{ $measurement->is_current ? 'Current' : 'Archived' }}</td>
-                        <td class="px-6 py-4 text-sm text-blue-600 dark:text-blue-400"><a href="{{ route('measurements.show', $measurement) }}">View</a></td>
+                        <td class="px-6 py-4 text-sm">
+                            <div class="flex gap-3">
+                                @can('view', $measurement)
+                                    <a href="{{ route('measurements.show', $measurement) }}" class="text-blue-600 dark:text-blue-400">View</a>
+                                @endcan
+                                @can('update', $measurement)
+                                    <a href="{{ route('measurements.edit', $measurement) }}" class="text-yellow-600 dark:text-yellow-400">Edit</a>
+                                @endcan
+                            </div>
+                        </td>
                     </tr>
                 @empty
                     <tr>

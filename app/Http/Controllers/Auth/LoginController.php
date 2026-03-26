@@ -30,7 +30,11 @@ final readonly class LoginController extends Controller
 
         $this->ensureIsNotRateLimited($request);
 
-        if (! Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+        if (! Auth::attempt([
+            'email' => $request->input('email'),
+            'password' => $request->input('password'),
+            'is_active' => true,
+        ], $request->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey($request));
 
             throw ValidationException::withMessages([
@@ -41,6 +45,7 @@ final readonly class LoginController extends Controller
         RateLimiter::clear($this->throttleKey($request));
 
         $request->session()->regenerate();
+        $request->user()?->forceFill(['last_login_at' => now()])->save();
 
         return redirect()->intended(route('dashboard', absolute: false));
     }

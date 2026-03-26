@@ -1,9 +1,11 @@
 <x-layouts.app title="Expenses">
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Expenses</h1>
-        <a href="{{ route('expenses.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
-            <i class="fas fa-plus mr-2"></i> Record Expense
-        </a>
+        @can('create', \App\Models\Expense::class)
+            <a href="{{ route('expenses.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
+                <i class="fas fa-plus mr-2"></i> Record Expense
+            </a>
+        @endcan
     </div>
 
     <form action="{{ route('expenses.index') }}" method="GET" class="mb-6">
@@ -66,12 +68,16 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex space-x-3">
-                                    <a href="{{ route('expenses.show', $expense) }}" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ route('expenses.edit', $expense) }}" class="text-yellow-600 hover:text-yellow-900">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
+                                    @can('view', $expense)
+                                        <a href="{{ route('expenses.show', $expense) }}" class="text-gray-400 hover:text-gray-600 dark:hover:text-white" title="View expense">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    @endcan
+                                    @can('update', $expense)
+                                        <a href="{{ route('expenses.edit', $expense) }}" class="text-yellow-600 hover:text-yellow-900" title="Edit expense">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

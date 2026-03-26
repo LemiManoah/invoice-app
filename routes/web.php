@@ -10,6 +10,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\Settings;
 use Illuminate\Support\Facades\Route;
 
@@ -58,6 +59,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('reports/customer-statement', [ReportController::class, 'customerStatement'])->name('reports.customer-statement');
     Route::get('reports/profit-loss', [ReportController::class, 'profitLoss'])->name('reports.profit-loss');
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::resource('users', UserController::class)->except(['show', 'destroy']);
 
     // Settings
     Route::get('settings/profile', [Settings\ProfileController::class, 'edit'])->name('settings.profile.edit');

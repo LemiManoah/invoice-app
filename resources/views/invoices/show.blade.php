@@ -20,33 +20,38 @@
             </div>
         </div>
         <div class="flex flex-wrap gap-2">
-            @if($invoice->status === 'draft')
+            @can('issue', $invoice)
                 <form action="{{ route('invoices.issue', $invoice) }}" method="POST">
                     @csrf
                     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
                         <i class="fas fa-paper-plane mr-2"></i> Issue Invoice
                     </button>
                 </form>
+            @endcan
+
+            @can('update', $invoice)
                 <a href="{{ route('invoices.edit', $invoice) }}" class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition">
                     <i class="fas fa-edit mr-2"></i> Edit
                 </a>
-            @endif
+            @endcan
 
-            @if($invoice->canAcceptPayments())
+            @can('create', [\App\Models\Payment::class, $invoice])
                 <button type="button" @click="$dispatch('open-modal', 'record-payment')" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
                     <i class="fas fa-money-bill-wave mr-2"></i> Record Payment
                 </button>
-            @endif
+            @endcan
 
-            <a href="{{ route('invoices.print', $invoice) }}" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition">
-                <i class="fas fa-print mr-2"></i> Print
-            </a>
+            @can('print', $invoice)
+                <a href="{{ route('invoices.print', $invoice) }}" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition">
+                    <i class="fas fa-print mr-2"></i> Print
+                </a>
+            @endcan
 
-            @if($invoice->canBeCancelled())
+            @can('cancel', $invoice)
                 <button type="button" @click="$dispatch('open-modal', 'cancel-invoice')" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
                     <i class="fas fa-times mr-2"></i> Cancel
                 </button>
-            @endif
+            @endcan
         </div>
     </div>
 
@@ -167,7 +172,9 @@
                                 <p class="text-sm font-bold text-gray-900 dark:text-white">{{ $payment->payment_date->format('M d, Y') }}</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-tighter">{{ $payment->payment_method }} - {{ $payment->reference_number ?? 'No Ref' }}</p>
                                 @if($payment->receipt)
-                                    <a href="{{ route('receipts.show', $payment->receipt) }}" class="text-xs text-blue-600 dark:text-blue-400">{{ $payment->receipt->receipt_number }}</a>
+                                    @can('view', $payment->receipt)
+                                        <a href="{{ route('receipts.show', $payment->receipt) }}" class="text-xs text-blue-600 dark:text-blue-400">{{ $payment->receipt->receipt_number }}</a>
+                                    @endcan
                                 @endif
                             </div>
                             <div class="text-right">
@@ -175,9 +182,11 @@
                                 @if($payment->status === 'voided')
                                     <p class="text-[10px] bg-red-100 text-red-600 px-1 rounded inline-block">VOIDED</p>
                                 @else
-                                    <button type="button" @click="$dispatch('open-modal', 'void-payment-{{ $payment->id }}')" class="mt-1 text-[11px] text-red-600 hover:text-red-800">
-                                        Void payment
-                                    </button>
+                                    @can('void', $payment)
+                                        <button type="button" @click="$dispatch('open-modal', 'void-payment-{{ $payment->id }}')" class="mt-1 text-[11px] text-red-600 hover:text-red-800">
+                                            Void payment
+                                        </button>
+                                    @endcan
                                 @endif
                             </div>
                         </div>
@@ -190,12 +199,13 @@
     </div>
 
     <!-- Record Payment Modal -->
-    <x-modal name="record-payment" maxWidth="lg">
-        <form action="{{ route('payments.store', $invoice) }}" method="POST" class="p-6">
-            @csrf
-            <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                Record Payment for {{ $invoice->invoice_number }}
-            </h2>
+    @can('create', [\App\Models\Payment::class, $invoice])
+        <x-modal name="record-payment" maxWidth="lg">
+            <form action="{{ route('payments.store', $invoice) }}" method="POST" class="p-6">
+                @csrf
+                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                    Record Payment for {{ $invoice->invoice_number }}
+                </h2>
 
             <div class="space-y-4">
                 <div>
@@ -243,43 +253,47 @@
                     Record Payment
                 </button>
             </div>
-        </form>
-    </x-modal>
-
-    @foreach($invoice->payments->where('status', 'valid') as $payment)
-        <x-modal name="void-payment-{{ $payment->id }}" maxWidth="md">
-            <form action="{{ route('payments.void', $payment) }}" method="POST" class="p-6">
-                @csrf
-                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                    Void Payment
-                </h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                    This keeps the payment in history but removes it from the invoice balance.
-                </p>
-                <div>
-                    <label for="void_reason_{{ $payment->id }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason *</label>
-                    <textarea name="void_reason" id="void_reason_{{ $payment->id }}" rows="3" required
-                        class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"></textarea>
-                </div>
-                <div class="mt-6 flex justify-end space-x-3">
-                    <button type="button" x-on:click="$dispatch('close-modal', 'void-payment-{{ $payment->id }}')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition">
-                        Back
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
-                        Confirm Void
-                    </button>
-                </div>
             </form>
         </x-modal>
+    @endcan
+
+    @foreach($invoice->payments->where('status', 'valid') as $payment)
+        @can('void', $payment)
+            <x-modal name="void-payment-{{ $payment->id }}" maxWidth="md">
+                <form action="{{ route('payments.void', $payment) }}" method="POST" class="p-6">
+                    @csrf
+                    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                        Void Payment
+                    </h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                        This keeps the payment in history but removes it from the invoice balance.
+                    </p>
+                    <div>
+                        <label for="void_reason_{{ $payment->id }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason *</label>
+                        <textarea name="void_reason" id="void_reason_{{ $payment->id }}" rows="3" required
+                            class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"></textarea>
+                    </div>
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button type="button" x-on:click="$dispatch('close-modal', 'void-payment-{{ $payment->id }}')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition">
+                            Back
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
+                            Confirm Void
+                        </button>
+                    </div>
+                </form>
+            </x-modal>
+        @endcan
     @endforeach
 
     <!-- Cancel Invoice Modal -->
-    <x-modal name="cancel-invoice" maxWidth="md">
-        <form action="{{ route('invoices.cancel', $invoice) }}" method="POST" class="p-6">
-            @csrf
-            <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                Cancel Invoice {{ $invoice->invoice_number }}
-            </h2>
+    @can('cancel', $invoice)
+        <x-modal name="cancel-invoice" maxWidth="md">
+            <form action="{{ route('invoices.cancel', $invoice) }}" method="POST" class="p-6">
+                @csrf
+                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                    Cancel Invoice {{ $invoice->invoice_number }}
+                </h2>
 
             <div class="space-y-4">
                 <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -301,6 +315,7 @@
                     Confirm Cancellation
                 </button>
             </div>
-        </form>
-    </x-modal>
+            </form>
+        </x-modal>
+    @endcan
 </x-layouts.app>

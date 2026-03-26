@@ -19,18 +19,24 @@
         </div>
         <div class="flex flex-wrap gap-2">
             @if(!$order->invoice)
-                <a href="{{ route('invoices.create', ['customer_id' => $order->customer_id, 'order_id' => $order->id]) }}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
-                    <i class="fas fa-file-invoice-dollar mr-2"></i> Generate Invoice
-                </a>
+                @can('create', \App\Models\Invoice::class)
+                    <a href="{{ route('invoices.create', ['customer_id' => $order->customer_id, 'order_id' => $order->id]) }}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
+                        <i class="fas fa-file-invoice-dollar mr-2"></i> Generate Invoice
+                    </a>
+                @endcan
             @else
-                <a href="{{ route('invoices.show', $order->invoice) }}" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition">
-                    <i class="fas fa-file-invoice mr-2"></i> View Invoice
-                </a>
+                @can('view', $order->invoice)
+                    <a href="{{ route('invoices.show', $order->invoice) }}" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition">
+                        <i class="fas fa-file-invoice mr-2"></i> View Invoice
+                    </a>
+                @endcan
             @endif
 
-            <a href="{{ route('orders.edit', $order) }}" class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition">
-                <i class="fas fa-edit mr-2"></i> Edit Order
-            </a>
+            @can('update', $order)
+                <a href="{{ route('orders.edit', $order) }}" class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition">
+                    <i class="fas fa-edit mr-2"></i> Edit Order
+                </a>
+            @endcan
         </div>
     </div>
 
@@ -125,25 +131,28 @@
 
                     <div>
                         <p class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-bold mb-2">Production Status</p>
-                        <form action="{{ route('orders.update', $order) }}" method="POST">
-                            @csrf
-                            @method('PUT')
-                            <!-- Hidden inputs for required fields in controller update -->
-                            <input type="hidden" name="customer_id" value="{{ $order->customer_id }}">
-                            <input type="hidden" name="order_date" value="{{ $order->order_date->format('Y-m-d') }}">
-                            <input type="hidden" name="priority" value="{{ $order->priority }}">
-                            
-                            <select name="status" onchange="this.form.submit()" 
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                                <option value="confirmed" {{ $order->status === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                                <option value="in_cutting" {{ $order->status === 'in_cutting' ? 'selected' : '' }}>In Cutting</option>
-                                <option value="in_stitching" {{ $order->status === 'in_stitching' ? 'selected' : '' }}>In Stitching</option>
-                                <option value="in_finishing" {{ $order->status === 'in_finishing' ? 'selected' : '' }}>In Finishing</option>
-                                <option value="ready_for_delivery" {{ $order->status === 'ready_for_delivery' ? 'selected' : '' }}>Ready for Delivery</option>
-                                <option value="delivered" {{ $order->status === 'delivered' ? 'selected' : '' }}>Delivered</option>
-                                <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                            </select>
-                        </form>
+                        @can('update', $order)
+                            <form action="{{ route('orders.update', $order) }}" method="POST">
+                                @csrf
+                                @method('PUT')
+                                <input type="hidden" name="customer_id" value="{{ $order->customer_id }}">
+                                <input type="hidden" name="order_date" value="{{ $order->order_date->format('Y-m-d') }}">
+                                <input type="hidden" name="priority" value="{{ $order->priority }}">
+                                
+                                <select name="status" onchange="this.form.submit()" 
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                                    <option value="confirmed" {{ $order->status === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                                    <option value="in_cutting" {{ $order->status === 'in_cutting' ? 'selected' : '' }}>In Cutting</option>
+                                    <option value="in_stitching" {{ $order->status === 'in_stitching' ? 'selected' : '' }}>In Stitching</option>
+                                    <option value="in_finishing" {{ $order->status === 'in_finishing' ? 'selected' : '' }}>In Finishing</option>
+                                    <option value="ready_for_delivery" {{ $order->status === 'ready_for_delivery' ? 'selected' : '' }}>Ready for Delivery</option>
+                                    <option value="delivered" {{ $order->status === 'delivered' ? 'selected' : '' }}>Delivered</option>
+                                    <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                </select>
+                            </form>
+                        @else
+                            <p class="text-sm text-gray-900 dark:text-white font-medium">{{ ucfirst(str_replace('_', ' ', $order->status)) }}</p>
+                        @endcan
                     </div>
 
                     <div class="pt-4 border-t border-gray-100 dark:border-gray-700">

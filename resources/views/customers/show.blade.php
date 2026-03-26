@@ -8,15 +8,21 @@
             <p class="text-gray-500 dark:text-gray-400">Customer Code: <span class="font-semibold text-gray-700 dark:text-gray-300">{{ $customer->customer_code }}</span></p>
         </div>
         <div class="flex flex-wrap gap-2">
-            <a href="{{ route('orders.create', ['customer_id' => $customer->id]) }}" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
-                <i class="fas fa-shopping-bag mr-2"></i> New Order
-            </a>
-            <a href="{{ route('invoices.create', ['customer_id' => $customer->id]) }}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
-                <i class="fas fa-file-invoice-dollar mr-2"></i> New Invoice
-            </a>
-            <a href="{{ route('customers.edit', $customer) }}" class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition">
-                <i class="fas fa-edit mr-2"></i> Edit Profile
-            </a>
+            @can('create', \App\Models\Order::class)
+                <a href="{{ route('orders.create', ['customer_id' => $customer->id]) }}" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
+                    <i class="fas fa-shopping-bag mr-2"></i> New Order
+                </a>
+            @endcan
+            @can('create', \App\Models\Invoice::class)
+                <a href="{{ route('invoices.create', ['customer_id' => $customer->id]) }}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
+                    <i class="fas fa-file-invoice-dollar mr-2"></i> New Invoice
+                </a>
+            @endcan
+            @can('update', $customer)
+                <a href="{{ route('customers.edit', $customer) }}" class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition">
+                    <i class="fas fa-edit mr-2"></i> Edit Profile
+                </a>
+            @endcan
         </div>
     </div>
 
@@ -213,9 +219,11 @@
                 <div x-show="activeTab === 'measurements'" x-cloak class="space-y-4">
                     <div class="flex justify-between items-center">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-white">Measurement History</h3>
-                        <a href="{{ route('customers.measurements.create', $customer) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 text-sm font-medium">
-                            <i class="fas fa-plus mr-1"></i> New Measurements
-                        </a>
+                        @can('create', \App\Models\Measurement::class)
+                            <a href="{{ route('customers.measurements.create', $customer) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 text-sm font-medium">
+                                <i class="fas fa-plus mr-1"></i> New Measurements
+                            </a>
+                        @endcan
                     </div>
                     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -252,9 +260,11 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-right">
-                                            <a href="{{ route('measurements.edit', $measurement) }}" class="text-yellow-600 hover:text-yellow-900 mr-3">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
+                                            @can('update', $measurement)
+                                                <a href="{{ route('measurements.edit', $measurement) }}" class="text-yellow-600 hover:text-yellow-900 mr-3">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            @endcan
                                         </td>
                                     </tr>
                                 @empty
