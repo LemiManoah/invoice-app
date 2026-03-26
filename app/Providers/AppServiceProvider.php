@@ -22,34 +22,31 @@ use App\Policies\OrderPolicy;
 use App\Policies\PaymentPolicy;
 use App\Policies\ReceiptPolicy;
 use App\Policies\UserPolicy;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 final class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void
-    {
-        //
-    }
+    /**
+     * The policy mappings for the application.
+     *
+     * @var array<class-string, class-string>
+     */
+    // protected $policies = [
+    //     Customer::class => CustomerPolicy::class,
+    //     Invoice::class => InvoicePolicy::class,
+    //     Payment::class => PaymentPolicy::class,
+    //     Receipt::class => ReceiptPolicy::class,
+    //     Expense::class => ExpensePolicy::class,
+    //     Order::class => OrderPolicy::class,
+    //     Measurement::class => MeasurementPolicy::class,
+    //     AuditLog::class => AuditLogPolicy::class,
+    //     User::class => UserPolicy::class,
+    // ];
 
+    /**
+     * Register any application authentication / authorization services.
+     */
     public function boot(): void
     {
-        Gate::before(static function (User $user, string $ability): bool|null {
-            if ($user->hasRole('Admin')) {
-                return true;
-            }
-
-            return null;
-        });
-
-        Gate::policy(Customer::class, CustomerPolicy::class);
-        Gate::policy(Invoice::class, InvoicePolicy::class);
-        Gate::policy(Payment::class, PaymentPolicy::class);
-        Gate::policy(Receipt::class, ReceiptPolicy::class);
-        Gate::policy(Expense::class, ExpensePolicy::class);
-        Gate::policy(Order::class, OrderPolicy::class);
-        Gate::policy(Measurement::class, MeasurementPolicy::class);
-        Gate::policy(AuditLog::class, AuditLogPolicy::class);
-        Gate::policy(User::class, UserPolicy::class);
     }
 }

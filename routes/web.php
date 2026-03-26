@@ -53,11 +53,17 @@ Route::middleware(['auth'])->group(function () {
     // Reports
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
+    Route::get('reports/sales/print', [ReportController::class, 'salesPrint'])->name('reports.sales.print');
     Route::get('reports/payments', [ReportController::class, 'payments'])->name('reports.payments');
+    Route::get('reports/payments/print', [ReportController::class, 'paymentsPrint'])->name('reports.payments.print');
     Route::get('reports/expenses', [ReportController::class, 'expenses'])->name('reports.expenses');
+    Route::get('reports/expenses/print', [ReportController::class, 'expensesPrint'])->name('reports.expenses.print');
     Route::get('reports/outstanding-balances', [ReportController::class, 'outstandingBalances'])->name('reports.outstanding-balances');
+    Route::get('reports/outstanding-balances/print', [ReportController::class, 'outstandingBalancesPrint'])->name('reports.outstanding-balances.print');
     Route::get('reports/customer-statement', [ReportController::class, 'customerStatement'])->name('reports.customer-statement');
+    Route::get('reports/customer-statement/print', [ReportController::class, 'customerStatementPrint'])->name('reports.customer-statement.print');
     Route::get('reports/profit-loss', [ReportController::class, 'profitLoss'])->name('reports.profit-loss');
+    Route::get('reports/profit-loss/print', [ReportController::class, 'profitLossPrint'])->name('reports.profit-loss.print');
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
     Route::resource('users', UserController::class)->except(['show', 'destroy']);
 

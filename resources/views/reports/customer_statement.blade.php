@@ -1,9 +1,16 @@
 <x-layouts.app title="Customer Statement">
-    <div class="mb-6">
-        <a href="{{ route('reports.index') }}" class="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 mb-2 inline-block">
-            <i class="fas fa-arrow-left mr-1"></i> Back to Reports
-        </a>
-        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Customer Statement</h1>
+    <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <a href="{{ route('reports.index') }}" class="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 mb-2 inline-block">
+                <i class="fas fa-arrow-left mr-1"></i> Back to Reports
+            </a>
+            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Customer Statement</h1>
+        </div>
+        @if($customer)
+            <a href="{{ route('reports.customer-statement.print', request()->only('customer_id', 'start_date', 'end_date')) }}" class="px-4 py-2 bg-gray-700 text-white rounded text-sm hover:bg-gray-800 transition self-start md:self-auto" target="_blank">
+                Print
+            </a>
+        @endif
     </div>
 
     <form action="{{ route('reports.customer-statement') }}" method="GET" class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm mb-8">

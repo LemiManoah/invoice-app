@@ -46,15 +46,17 @@
                                 {{ $customer->email ?? 'N/A' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex space-x-3">
+                                <div class="flex flex-wrap gap-2">
                                     @can('view', $customer)
-                                        <a href="{{ route('customers.show', $customer) }}" class="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400" title="View customer">
-                                            <i class="fas fa-eye"></i>
+                                        <a href="{{ route('customers.show', $customer) }}"
+                                            class="inline-flex items-center rounded-md border border-blue-200 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/30">
+                                            View
                                         </a>
                                     @endcan
                                     @can('update', $customer)
-                                        <a href="{{ route('customers.edit', $customer) }}" class="text-yellow-600 hover:text-yellow-900 dark:hover:text-yellow-400" title="Edit customer">
-                                            <i class="fas fa-edit"></i>
+                                        <a href="{{ route('customers.edit', $customer) }}"
+                                            class="inline-flex items-center rounded-md border border-amber-200 px-2.5 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-900/30">
+                                            Edit
                                         </a>
                                     @endcan
                                 </div>

@@ -66,21 +66,24 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex space-x-3">
+                                <div class="flex flex-wrap gap-2">
                                     @can('view', $invoice)
-                                        <a href="{{ route('invoices.show', $invoice) }}" class="text-gray-400 hover:text-gray-600 dark:hover:text-white" title="View invoice">
-                                            <i class="fas fa-eye"></i>
+                                        <a href="{{ route('invoices.show', $invoice) }}"
+                                            class="inline-flex items-center rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
+                                            View
                                         </a>
                                     @endcan
                                     @can('print', $invoice)
-                                        <a href="{{ route('invoices.print', $invoice) }}" class="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400" title="Print invoice">
-                                            <i class="fas fa-print"></i>
+                                        <a href="{{ route('invoices.print', $invoice) }}"
+                                            class="inline-flex items-center rounded-md border border-blue-200 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/30">
+                                            Print
                                         </a>
                                     @endcan
                                     @can('update', $invoice)
                                         @if($invoice->status === 'draft')
-                                            <a href="{{ route('invoices.edit', $invoice) }}" class="text-yellow-600 hover:text-yellow-900" title="Edit invoice">
-                                                <i class="fas fa-edit"></i>
+                                            <a href="{{ route('invoices.edit', $invoice) }}"
+                                                class="inline-flex items-center rounded-md border border-amber-200 px-2.5 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-900/30">
+                                                Edit
                                             </a>
                                         @endif
                                     @endcan

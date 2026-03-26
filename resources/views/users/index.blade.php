@@ -80,8 +80,9 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 @can('update', $user)
-                                    <a href="{{ route('users.edit', $user) }}" class="text-yellow-600 hover:text-yellow-900 dark:hover:text-yellow-400">
-                                        <i class="fas fa-user-gear"></i>
+                                    <a href="{{ route('users.edit', $user) }}"
+                                        class="inline-flex items-center rounded-md border border-amber-200 px-2.5 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-900/30">
+                                        Edit
                                     </a>
                                 @else
                                     <span class="text-gray-300 dark:text-gray-600">-</span>

@@ -21,6 +21,9 @@
             <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition">
                 Filter
             </button>
+            <a href="{{ route('reports.expenses.print', request()->only('start_date', 'end_date')) }}" class="px-4 py-1.5 bg-gray-700 text-white rounded text-sm hover:bg-gray-800 transition" target="_blank">
+                Print
+            </a>
         </form>
     </div>
 

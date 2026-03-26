@@ -38,16 +38,18 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ ucfirst($payment->status) }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-mono {{ $payment->status === 'valid' ? 'text-green-600' : 'text-red-600' }}">{{ number_format($payment->amount, 2) }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex gap-3">
+                                <div class="flex flex-wrap gap-2">
                                     @can('view', $payment)
-                                        <a href="{{ route('payments.show', $payment) }}" class="text-gray-400 hover:text-gray-600 dark:hover:text-white" title="View payment">
-                                            <i class="fas fa-eye"></i>
+                                        <a href="{{ route('payments.show', $payment) }}"
+                                            class="inline-flex items-center rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
+                                            View
                                         </a>
                                     @endcan
                                     @if($payment->receipt)
                                         @can('view', $payment->receipt)
-                                            <a href="{{ route('receipts.show', $payment->receipt) }}" class="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400" title="View receipt">
-                                                <i class="fas fa-receipt"></i>
+                                            <a href="{{ route('receipts.show', $payment->receipt) }}"
+                                                class="inline-flex items-center rounded-md border border-blue-200 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/30">
+                                                Receipt
                                             </a>
                                         @endcan
                                     @endif

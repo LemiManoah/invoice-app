@@ -43,9 +43,30 @@ final readonly class ReportController extends Controller implements HasMiddlewar
         ));
     }
 
+    public function salesPrint(
+        ReportDateRangeRequest $request,
+        ComputeSalesReportAction $action,
+        SyncInvoiceStatusesAction $syncInvoiceStatuses,
+    ): View {
+        $syncInvoiceStatuses->handle();
+
+        return view('reports.print.sales', $action->handle(
+            $request->input('start_date', now()->startOfMonth()->toDateString()),
+            $request->input('end_date', now()->endOfMonth()->toDateString()),
+        ));
+    }
+
     public function expenses(ReportDateRangeRequest $request, ComputeExpensesReportAction $action): View
     {
         return view('reports.expenses', $action->handle(
+            $request->input('start_date', now()->startOfMonth()->toDateString()),
+            $request->input('end_date', now()->endOfMonth()->toDateString()),
+        ));
+    }
+
+    public function expensesPrint(ReportDateRangeRequest $request, ComputeExpensesReportAction $action): View
+    {
+        return view('reports.print.expenses', $action->handle(
             $request->input('start_date', now()->startOfMonth()->toDateString()),
             $request->input('end_date', now()->endOfMonth()->toDateString()),
         ));
@@ -59,6 +80,14 @@ final readonly class ReportController extends Controller implements HasMiddlewar
         ));
     }
 
+    public function paymentsPrint(ReportDateRangeRequest $request, ComputePaymentsReportAction $action): View
+    {
+        return view('reports.print.payments', $action->handle(
+            $request->input('start_date', now()->startOfMonth()->toDateString()),
+            $request->input('end_date', now()->endOfMonth()->toDateString()),
+        ));
+    }
+
     public function outstandingBalances(
         ReportDateRangeRequest $request,
         ComputeOutstandingBalancesReportAction $action,
@@ -67,6 +96,19 @@ final readonly class ReportController extends Controller implements HasMiddlewar
         $syncInvoiceStatuses->handle();
 
         return view('reports.outstanding_balances', $action->handle(
+            $request->input('start_date', now()->startOfMonth()->toDateString()),
+            $request->input('end_date', now()->endOfMonth()->toDateString()),
+        ));
+    }
+
+    public function outstandingBalancesPrint(
+        ReportDateRangeRequest $request,
+        ComputeOutstandingBalancesReportAction $action,
+        SyncInvoiceStatusesAction $syncInvoiceStatuses,
+    ): View {
+        $syncInvoiceStatuses->handle();
+
+        return view('reports.print.outstanding_balances', $action->handle(
             $request->input('start_date', now()->startOfMonth()->toDateString()),
             $request->input('end_date', now()->endOfMonth()->toDateString()),
         ));
@@ -86,9 +128,31 @@ final readonly class ReportController extends Controller implements HasMiddlewar
         ));
     }
 
+    public function customerStatementPrint(
+        ReportDateRangeRequest $request,
+        ComputeCustomerStatementAction $action,
+        SyncInvoiceStatusesAction $syncInvoiceStatuses,
+    ): View {
+        $syncInvoiceStatuses->handle();
+
+        return view('reports.print.customer_statement', $action->handle(
+            $request->integer('customer_id') ?: null,
+            $request->input('start_date', now()->startOfMonth()->toDateString()),
+            $request->input('end_date', now()->endOfMonth()->toDateString()),
+        ));
+    }
+
     public function profitLoss(ReportDateRangeRequest $request, ComputeProfitLossReportAction $action): View
     {
         return view('reports.profit_loss', $action->handle(
+            $request->input('start_date', now()->startOfMonth()->toDateString()),
+            $request->input('end_date', now()->endOfMonth()->toDateString()),
+        ));
+    }
+
+    public function profitLossPrint(ReportDateRangeRequest $request, ComputeProfitLossReportAction $action): View
+    {
+        return view('reports.print.profit_loss', $action->handle(
             $request->input('start_date', now()->startOfMonth()->toDateString()),
             $request->input('end_date', now()->endOfMonth()->toDateString()),
         ));

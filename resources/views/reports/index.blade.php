@@ -12,6 +12,7 @@
             </div>
             <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Sales Report</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">View invoiced amounts, payments received, and outstanding balances over a specific period.</p>
+            <span class="inline-flex mt-4 px-3 py-1.5 bg-blue-600 text-white rounded text-sm">Open report</span>
         </a>
 
         <!-- Expense Report -->
@@ -21,6 +22,7 @@
             </div>
             <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Expense Report</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Track business spending categorized by type to see where your money is going.</p>
+            <span class="inline-flex mt-4 px-3 py-1.5 bg-red-600 text-white rounded text-sm">Open report</span>
         </a>
 
         <!-- Payments Report -->
@@ -30,6 +32,7 @@
             </div>
             <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Payments Report</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Review payment collections, receipt links, and payment volume for any period.</p>
+            <span class="inline-flex mt-4 px-3 py-1.5 bg-emerald-600 text-white rounded text-sm">Open report</span>
         </a>
 
         <!-- Outstanding Balances -->
@@ -39,6 +42,7 @@
             </div>
             <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Outstanding Balances</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">See all unpaid and overdue invoices with balances still due.</p>
+            <span class="inline-flex mt-4 px-3 py-1.5 bg-amber-600 text-white rounded text-sm">Open report</span>
         </a>
 
         <!-- Customer Statement -->
@@ -48,6 +52,7 @@
             </div>
             <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Customer Statement</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">View invoice and payment history for one customer and confirm the current balance.</p>
+            <span class="inline-flex mt-4 px-3 py-1.5 bg-sky-600 text-white rounded text-sm">Open report</span>
         </a>
 
         <!-- Profit & Loss -->
@@ -57,6 +62,7 @@
             </div>
             <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Profit & Loss</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">A high-level summary of collected revenue vs. expenses to estimate net business position.</p>
+            <span class="inline-flex mt-4 px-3 py-1.5 bg-green-600 text-white rounded text-sm">Open report</span>
         </a>
     </div>
 </x-layouts.app>
