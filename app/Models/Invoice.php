@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -62,6 +63,11 @@ class Invoice extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function validPayments(): HasMany
+    {
+        return $this->payments()->where('status', 'valid');
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -70,5 +76,24 @@ class Invoice extends Model
     public function canceller(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function canAcceptPayments(): bool
+    {
+        return in_array($this->status, ['issued', 'partially_paid', 'overdue'], true)
+            && (float) $this->balance_due > 0;
+    }
+
+    public function canBeCancelled(): bool
+    {
+        return $this->status !== 'cancelled' && $this->validPayments()->doesntExist();
+    }
+
+    public function shouldBeOverdue(CarbonInterface $date): bool
+    {
+        return $this->due_date !== null
+            && $this->due_date->lt($date)
+            && (float) $this->balance_due > 0
+            && in_array($this->status, ['issued', 'partially_paid', 'overdue'], true);
     }
 }

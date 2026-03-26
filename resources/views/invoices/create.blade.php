@@ -20,6 +20,7 @@
                                 <thead>
                                     <tr>
                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Qty</th>
                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Unit Price</th>
                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Total</th>
@@ -31,6 +32,10 @@
                                         <tr>
                                             <td class="px-4 py-2">
                                                 <input type="text" :name="'items['+index+'][item_name]'" x-model="item.item_name" required
+                                                    class="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                <input type="text" :name="'items['+index+'][description]'" x-model="item.description"
                                                     class="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
                                             </td>
                                             <td class="px-4 py-2">
@@ -92,6 +97,19 @@
                                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
                             </div>
 
+                            @if(count($orders) > 0)
+                                <div>
+                                    <label for="order_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Link Order</label>
+                                    <select name="order_id" id="order_id"
+                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                                        <option value="">No linked order</option>
+                                        @foreach($orders as $order)
+                                            <option value="{{ $order->id }}">{{ $order->order_number }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endif
+
                             <div>
                                 <label for="due_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Due Date</label>
                                 <input type="date" name="due_date" id="due_date"
@@ -138,6 +156,7 @@
             return {
                 items: [{
                     item_name: '',
+                    description: '',
                     quantity: 1,
                     unit_price: 0
                 }],
@@ -149,6 +168,7 @@
                 addItem() {
                     this.items.push({
                         item_name: '',
+                        description: '',
                         quantity: 1,
                         unit_price: 0
                     });

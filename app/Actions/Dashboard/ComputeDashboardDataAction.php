@@ -3,6 +3,7 @@
 namespace App\Actions\Dashboard;
 
 use App\Models\Customer;
+use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\Payment;
@@ -16,9 +17,11 @@ class ComputeDashboardDataAction
 
         $stats = [
             'new_customers_today' => Customer::whereDate('created_at', $today)->count(),
-            'invoices_created_today' => Invoice::whereDate('created_at', $today)->count(),
+            'invoices_issued_today' => Invoice::whereNotNull('issued_at')->whereDate('issued_at', $today)->count(),
             'collected_today' => Payment::where('status', 'valid')->whereDate('payment_date', $today)->sum('amount'),
-            'outstanding_balance' => Invoice::whereNotIn('status', ['cancelled', 'paid'])->sum('balance_due'),
+            'expenses_today' => Expense::where('status', 'valid')->whereDate('expense_date', $today)->sum('amount'),
+            'unpaid_balances' => Invoice::whereNotIn('status', ['cancelled', 'paid', 'draft'])->sum('balance_due'),
+            'overdue_invoices' => Invoice::where('status', 'overdue')->count(),
             'active_orders' => Order::whereIn('status', ['confirmed', 'in_cutting', 'in_stitching', 'in_finishing'])->count(),
             'ready_orders' => Order::where('status', 'ready_for_delivery')->count(),
         ];

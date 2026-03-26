@@ -14,15 +14,15 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->string('order_number')->unique();
-            $table->foreignId('customer_id')->constrained()->onDelete('cascade');
+            $table->foreignId('customer_id')->constrained()->restrictOnDelete();
             $table->date('order_date');
             $table->date('promised_delivery_date')->nullable();
             $table->date('actual_completion_date')->nullable();
             $table->string('status')->default('draft');
             $table->string('priority')->default('medium');
             $table->text('notes')->nullable();
-            $table->foreignId('assigned_to')->nullable()->constrained('users');
-            $table->foreignId('created_by')->nullable()->constrained('users');
+            $table->foreignId('assigned_to')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

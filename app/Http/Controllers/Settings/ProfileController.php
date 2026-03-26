@@ -12,6 +12,11 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    public function __construct(
+        private readonly UpdateProfileAction $updateProfile,
+    ) {
+    }
+
     public function edit(Request $request): View
     {
         return view('settings.profile', [
@@ -23,7 +28,7 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         $data = $request->validated();
-        (new UpdateProfileAction)($user, $data);
+        ($this->updateProfile)($user, $data);
 
         return to_route('settings.profile.edit')->with('status', __('Profile updated successfully'));
     }

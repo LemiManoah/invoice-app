@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -21,6 +22,10 @@ class Customer extends Model
         'created_by',
     ];
 
+    protected $casts = [
+        'date_of_birth' => 'date',
+    ];
+
     public function measurements(): HasMany
     {
         return $this->hasMany(Measurement::class);
@@ -34,6 +39,11 @@ class Customer extends Model
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    public function payments(): HasManyThrough
+    {
+        return $this->hasManyThrough(Payment::class, Invoice::class);
     }
 
     public function creator(): BelongsTo

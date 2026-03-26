@@ -56,6 +56,7 @@
                         <option value="Bank Transfer" {{ old('payment_method') == 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
                         <option value="Mobile Money" {{ old('payment_method') == 'Mobile Money' ? 'selected' : '' }}>Mobile Money</option>
                         <option value="Card" {{ old('payment_method') == 'Card' ? 'selected' : '' }}>Card</option>
+                        <option value="Other" {{ old('payment_method') == 'Other' ? 'selected' : '' }}>Other</option>
                     </select>
                     @error('payment_method')
                         <p class="mt-1 text-sm text-red-500">{{ $message }}</p>

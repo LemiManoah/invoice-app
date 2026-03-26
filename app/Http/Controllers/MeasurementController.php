@@ -9,13 +9,19 @@ use App\Http\Requests\StoreMeasurementRequest;
 use App\Http\Requests\UpdateMeasurementRequest;
 use App\Models\Customer;
 use App\Models\Measurement;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class MeasurementController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Customer $customer)
+    public function __construct(
+        private readonly CreateMeasurementAction $createMeasurement,
+        private readonly UpdateMeasurementAction $updateMeasurement,
+        private readonly DeleteMeasurementAction $deleteMeasurement,
+    ) {
+    }
+
+    public function index(Customer $customer): View
     {
         $measurements = $customer->measurements()->latest()->get();
 
@@ -25,7 +31,7 @@ class MeasurementController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Customer $customer)
+    public function create(Customer $customer): View
     {
         return view('measurements.create', compact('customer'));
     }
@@ -33,10 +39,10 @@ class MeasurementController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreMeasurementRequest $request, Customer $customer)
+    public function store(StoreMeasurementRequest $request, Customer $customer): RedirectResponse
     {
         $data = $request->validated();
-        (new CreateMeasurementAction)($customer, $data);
+        ($this->createMeasurement)($customer, $data);
 
         return redirect()->route('customers.show', $customer)
             ->with('success', 'Measurements recorded successfully.');
@@ -45,7 +51,7 @@ class MeasurementController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Measurement $measurement)
+    public function show(Measurement $measurement): View
     {
         return view('measurements.show', compact('measurement'));
     }
@@ -53,7 +59,7 @@ class MeasurementController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Measurement $measurement)
+    public function edit(Measurement $measurement): View
     {
         $customer = $measurement->customer;
 
@@ -63,10 +69,10 @@ class MeasurementController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateMeasurementRequest $request, Measurement $measurement)
+    public function update(UpdateMeasurementRequest $request, Measurement $measurement): RedirectResponse
     {
         $data = $request->validated();
-        (new UpdateMeasurementAction)($measurement, $data);
+        ($this->updateMeasurement)($measurement, $data);
 
         return redirect()->route('customers.show', $measurement->customer)
             ->with('success', 'Measurements updated successfully.');
@@ -75,9 +81,9 @@ class MeasurementController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Measurement $measurement)
+    public function destroy(Measurement $measurement): RedirectResponse
     {
-        (new DeleteMeasurementAction)($measurement);
+        ($this->deleteMeasurement)($measurement);
 
         return redirect()->route('customers.show', $measurement->customer)
             ->with('success', 'Measurement record deleted.');

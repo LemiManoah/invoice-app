@@ -17,6 +17,10 @@
                             <x-layouts.sidebar-link href="{{ route('invoices.index') }}" icon='fas-file-invoice-dollar'
                                 :active="request()->routeIs('invoices*')">Invoices</x-layouts.sidebar-link>
 
+                            <!-- Payments -->
+                            <x-layouts.sidebar-link href="{{ route('payments.index') }}" icon='fas-money-check-dollar'
+                                :active="request()->routeIs('payments*') || request()->routeIs('receipts*')">Payments</x-layouts.sidebar-link>
+
                             <!-- Orders -->
                             <x-layouts.sidebar-link href="{{ route('orders.index') }}" icon='fas-shopping-bag'
                                 :active="request()->routeIs('orders*')">Orders</x-layouts.sidebar-link>
@@ -28,6 +32,10 @@
                             <!-- Reports -->
                             <x-layouts.sidebar-link href="{{ route('reports.index') }}" icon='fas-chart-line'
                                 :active="request()->routeIs('reports*')">Reports</x-layouts.sidebar-link>
+
+                            <!-- Audit -->
+                            <x-layouts.sidebar-link href="{{ route('audit-logs.index') }}" icon='fas-clock-rotate-left'
+                                :active="request()->routeIs('audit-logs*')">Audit Logs</x-layouts.sidebar-link>
                         </ul>
                     </nav>
                 </div>

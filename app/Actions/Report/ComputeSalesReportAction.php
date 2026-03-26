@@ -12,7 +12,10 @@ class ComputeSalesReportAction
         $start = $startDate ? Carbon::parse($startDate) : Carbon::now()->startOfMonth();
         $end = $endDate ? Carbon::parse($endDate) : Carbon::now()->endOfMonth();
 
-        $invoices = Invoice::with('customer')->whereBetween('invoice_date', [$start->toDateString(), $end->toDateString()])->get();
+        $invoices = Invoice::with('customer')
+            ->whereNotIn('status', ['draft', 'cancelled'])
+            ->whereBetween('invoice_date', [$start->toDateString(), $end->toDateString()])
+            ->get();
 
         $summary = [
             'total_invoiced' => $invoices->sum('total_amount'),

@@ -18,7 +18,7 @@ class ComputeProfitLossReportAction
 
         return [
             'revenue' => $revenue,
-            'expenses' => $totalExpenses,
+            'total_expenses' => $totalExpenses,
             'start_date' => $start->toDateString(),
             'end_date' => $end->toDateString(),
         ];

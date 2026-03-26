@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
@@ -7,6 +8,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\MeasurementController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Settings;
 use Illuminate\Support\Facades\Route;
@@ -21,7 +23,7 @@ Route::get('dashboard', [DashboardController::class, 'index'])
 
 Route::middleware(['auth'])->group(function () {
     // Customers
-    Route::resource('customers', CustomerController::class);
+    Route::resource('customers', CustomerController::class)->except(['destroy']);
     
     // Measurements
     Route::resource('customers.measurements', MeasurementController::class)->shallow();
@@ -30,23 +32,32 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('orders', OrderController::class);
     
     // Invoices
-    Route::resource('invoices', InvoiceController::class);
+    Route::resource('invoices', InvoiceController::class)->except(['destroy']);
     Route::post('invoices/{invoice}/issue', [InvoiceController::class, 'issue'])->name('invoices.issue');
     Route::post('invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
+    Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
     
     // Payments
     Route::post('invoices/{invoice}/payments', [PaymentController::class, 'store'])->name('payments.store');
-    Route::delete('payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
+    Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
+    Route::post('payments/{payment}/void', [PaymentController::class, 'void'])->name('payments.void');
+    Route::get('receipts/{receipt}', [ReceiptController::class, 'show'])->name('receipts.show');
+    Route::get('receipts/{receipt}/print', [ReceiptController::class, 'print'])->name('receipts.print');
 
     // Expenses
-    Route::resource('expenses', ExpenseController::class);
+    Route::resource('expenses', ExpenseController::class)->except(['destroy']);
     Route::post('expenses/{expense}/void', [ExpenseController::class, 'void'])->name('expenses.void');
 
     // Reports
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
+    Route::get('reports/payments', [ReportController::class, 'payments'])->name('reports.payments');
     Route::get('reports/expenses', [ReportController::class, 'expenses'])->name('reports.expenses');
+    Route::get('reports/outstanding-balances', [ReportController::class, 'outstandingBalances'])->name('reports.outstanding-balances');
+    Route::get('reports/customer-statement', [ReportController::class, 'customerStatement'])->name('reports.customer-statement');
     Route::get('reports/profit-loss', [ReportController::class, 'profitLoss'])->name('reports.profit-loss');
+    Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 
     // Settings
     Route::get('settings/profile', [Settings\ProfileController::class, 'edit'])->name('settings.profile.edit');

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Payment extends Model
 {
@@ -40,5 +41,15 @@ class Payment extends Model
     public function voider(): BelongsTo
     {
         return $this->belongsTo(User::class, 'voided_by');
+    }
+
+    public function receipt(): HasOne
+    {
+        return $this->hasOne(Receipt::class);
+    }
+
+    public function isVoided(): bool
+    {
+        return $this->status === 'voided';
     }
 }

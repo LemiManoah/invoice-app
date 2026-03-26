@@ -11,6 +11,11 @@ use Illuminate\View\View;
 
 class PasswordController extends Controller
 {
+    public function __construct(
+        private readonly UpdatePasswordAction $updatePassword,
+    ) {
+    }
+
     public function edit(Request $request): View
     {
         return view('settings.password', [
@@ -21,7 +26,7 @@ class PasswordController extends Controller
     public function update(UpdatePasswordRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        (new UpdatePasswordAction)($request->user(), $data['password']);
+        ($this->updatePassword)($request->user(), $data['password']);
 
         return back()->with('status', 'password-updated');
     }

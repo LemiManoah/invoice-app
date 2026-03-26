@@ -6,6 +6,16 @@
         </a>
     </div>
 
+    <form action="{{ route('customers.index') }}" method="GET" class="mb-6">
+        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div class="flex flex-col md:flex-row gap-3">
+                <input type="text" name="search" value="{{ $search }}" placeholder="Search by name, phone, email, or code"
+                    class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                <button type="submit" class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700 transition text-sm">Search</button>
+            </div>
+        </div>
+    </form>
+
     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -41,13 +51,6 @@
                                     <a href="{{ route('customers.edit', $customer) }}" class="text-yellow-600 hover:text-yellow-900 dark:hover:text-yellow-400">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <form action="{{ route('customers.destroy', $customer) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this customer?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900 dark:hover:text-red-400">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
                                 </div>
                             </td>
                         </tr>

@@ -4,7 +4,7 @@
         <p class="text-gray-500 dark:text-gray-400">Select a report to view business performance</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <!-- Sales Report -->
         <a href="{{ route('reports.sales') }}" class="block p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 transition shadow-sm group">
             <div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center text-blue-600 mb-4 group-hover:scale-110 transition">
@@ -21,6 +21,33 @@
             </div>
             <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Expense Report</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Track business spending categorized by type to see where your money is going.</p>
+        </a>
+
+        <!-- Payments Report -->
+        <a href="{{ route('reports.payments') }}" class="block p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-emerald-500 dark:hover:border-emerald-500 transition shadow-sm group">
+            <div class="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center text-emerald-600 mb-4 group-hover:scale-110 transition">
+                <i class="fas fa-money-check-dollar fa-lg"></i>
+            </div>
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Payments Report</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Review payment collections, receipt links, and payment volume for any period.</p>
+        </a>
+
+        <!-- Outstanding Balances -->
+        <a href="{{ route('reports.outstanding-balances') }}" class="block p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-amber-500 dark:hover:border-amber-500 transition shadow-sm group">
+            <div class="w-12 h-12 bg-amber-50 dark:bg-amber-900/20 rounded-lg flex items-center justify-center text-amber-600 mb-4 group-hover:scale-110 transition">
+                <i class="fas fa-hand-holding-dollar fa-lg"></i>
+            </div>
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Outstanding Balances</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">See all unpaid and overdue invoices with balances still due.</p>
+        </a>
+
+        <!-- Customer Statement -->
+        <a href="{{ route('reports.customer-statement') }}" class="block p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-sky-500 dark:hover:border-sky-500 transition shadow-sm group">
+            <div class="w-12 h-12 bg-sky-50 dark:bg-sky-900/20 rounded-lg flex items-center justify-center text-sky-600 mb-4 group-hover:scale-110 transition">
+                <i class="fas fa-address-card fa-lg"></i>
+            </div>
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Customer Statement</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">View invoice and payment history for one customer and confirm the current balance.</p>
         </a>
 
         <!-- Profit & Loss -->

@@ -43,4 +43,9 @@ class Expense extends Model
     {
         return $this->belongsTo(User::class, 'voided_by');
     }
+
+    public function isVoided(): bool
+    {
+        return $this->status === 'voided';
+    }
 }

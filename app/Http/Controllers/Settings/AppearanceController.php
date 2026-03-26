@@ -10,6 +10,11 @@ use Illuminate\View\View;
 
 class AppearanceController extends Controller
 {
+    public function __construct(
+        private readonly UpdateAppearanceAction $updateAppearance,
+    ) {
+    }
+
     public function edit(): View
     {
         return view('settings.appearance');
@@ -18,7 +23,7 @@ class AppearanceController extends Controller
     public function update(UpdateAppearanceRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        (new UpdateAppearanceAction)($request->user(), $data);
+        ($this->updateAppearance)($request->user(), $data);
 
         return back();
     }

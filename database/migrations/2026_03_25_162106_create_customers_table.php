@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('gender')->nullable();
             $table->date('date_of_birth')->nullable();
             $table->text('notes')->nullable();
-            $table->foreignId('created_by')->nullable()->constrained('users');
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

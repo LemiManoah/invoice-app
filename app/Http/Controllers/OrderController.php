@@ -10,13 +10,19 @@ use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Customer;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class OrderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct(
+        private readonly CreateOrderAction $createOrder,
+        private readonly UpdateOrderAction $updateOrder,
+        private readonly DeleteOrderAction $deleteOrder,
+    ) {
+    }
+
+    public function index(): View
     {
         $orders = Order::with('customer')->latest()->paginate(10);
 
@@ -26,7 +32,7 @@ class OrderController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request)
+    public function create(Request $request): View
     {
         $customers = Customer::orderBy('full_name')->get();
         $selected_customer_id = $request->query('customer_id');
@@ -37,10 +43,10 @@ class OrderController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreOrderRequest $request)
+    public function store(StoreOrderRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $order = (new CreateOrderAction)($data);
+        $order = ($this->createOrder)($data);
 
         return redirect()->route('orders.show', $order)
             ->with('success', 'Order created successfully.');
@@ -49,7 +55,7 @@ class OrderController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Order $order)
+    public function show(Order $order): View
     {
         $order->load(['customer', 'items', 'invoice', 'creator', 'assignee']);
 
@@ -59,7 +65,7 @@ class OrderController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Order $order)
+    public function edit(Order $order): View
     {
         $customers = Customer::orderBy('full_name')->get();
         $order->load('items');
@@ -70,10 +76,10 @@ class OrderController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateOrderRequest $request, Order $order)
+    public function update(UpdateOrderRequest $request, Order $order): RedirectResponse
     {
         $data = $request->validated();
-        (new UpdateOrderAction)($order, $data);
+        ($this->updateOrder)($order, $data);
 
         return redirect()->route('orders.show', $order)
             ->with('success', 'Order updated successfully.');
@@ -82,9 +88,9 @@ class OrderController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Order $order)
+    public function destroy(Order $order): RedirectResponse
     {
-        (new DeleteOrderAction)($order);
+        ($this->deleteOrder)($order);
 
         return redirect()->route('orders.index')->with('success', 'Order deleted.');
     }

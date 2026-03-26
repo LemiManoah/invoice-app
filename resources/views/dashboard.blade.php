@@ -2,7 +2,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
         <!-- New Customers Today -->
         <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
-            <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">New Leads</p>
+            <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">New Customers</p>
             <div class="flex items-center justify-between">
                 <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['new_customers_today'] }}</span>
                 <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-blue-600">
@@ -15,9 +15,20 @@
         <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Invoices Issued</p>
             <div class="flex items-center justify-between">
-                <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['invoices_created_today'] }}</span>
+                <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['invoices_issued_today'] }}</span>
                 <div class="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded text-indigo-600">
                     <i class="fas fa-file-invoice text-sm"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expenses Today -->
+        <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
+            <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Expenses Today</p>
+            <div class="flex items-center justify-between">
+                <span class="text-xl font-bold text-red-600">{{ number_format($stats['expenses_today'], 2) }}</span>
+                <div class="p-2 bg-red-50 dark:bg-red-900/20 rounded text-red-600">
+                    <i class="fas fa-money-bill-wave text-sm"></i>
                 </div>
             </div>
         </div>
@@ -33,13 +44,24 @@
             </div>
         </div>
 
-        <!-- Outstanding -->
+        <!-- Unpaid Balances -->
         <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
-            <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Outstanding</p>
+            <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Unpaid Balances</p>
             <div class="flex items-center justify-between">
-                <span class="text-xl font-bold text-red-600">{{ number_format($stats['outstanding_balance'], 2) }}</span>
+                <span class="text-xl font-bold text-red-600">{{ number_format($stats['unpaid_balances'], 2) }}</span>
                 <div class="p-2 bg-red-50 dark:bg-red-900/20 rounded text-red-600">
                     <i class="fas fa-hand-holding-usd text-sm"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overdue Invoices -->
+        <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
+            <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Overdue Invoices</p>
+            <div class="flex items-center justify-between">
+                <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['overdue_invoices'] }}</span>
+                <div class="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded text-yellow-600">
+                    <i class="fas fa-triangle-exclamation text-sm"></i>
                 </div>
             </div>
         </div>
@@ -49,19 +71,8 @@
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Active Orders</p>
             <div class="flex items-center justify-between">
                 <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['active_orders'] }}</span>
-                <div class="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded text-yellow-600">
-                    <i class="fas fa-cut text-sm"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Ready for Delivery -->
-        <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
-            <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Ready to Go</p>
-            <div class="flex items-center justify-between">
-                <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['ready_orders'] }}</span>
                 <div class="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded text-emerald-600">
-                    <i class="fas fa-truck text-sm"></i>
+                    <i class="fas fa-cut text-sm"></i>
                 </div>
             </div>
         </div>

@@ -6,6 +6,22 @@
         </a>
     </div>
 
+    <form action="{{ route('invoices.index') }}" method="GET" class="mb-6">
+        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <input type="text" name="search" value="{{ $search }}" placeholder="Search invoice number or customer"
+                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                <select name="status" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                    <option value="">All statuses</option>
+                    @foreach(['draft', 'issued', 'partially_paid', 'paid', 'overdue', 'cancelled'] as $filterStatus)
+                        <option value="{{ $filterStatus }}" @selected($status === $filterStatus)>{{ ucfirst(str_replace('_', ' ', $filterStatus)) }}</option>
+                    @endforeach
+                </select>
+                <button type="submit" class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700 transition text-sm">Filter</button>
+            </div>
+        </div>
+    </form>
+
     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -41,6 +57,7 @@
                                     'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' => $invoice->status === 'issued',
                                     'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' => $invoice->status === 'paid',
                                     'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' => $invoice->status === 'partially_paid',
+                                    'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' => $invoice->status === 'overdue',
                                     'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' => $invoice->status === 'cancelled',
                                 ])>
                                     {{ ucfirst(str_replace('_', ' ', $invoice->status)) }}
@@ -55,13 +72,6 @@
                                         <a href="{{ route('invoices.edit', $invoice) }}" class="text-yellow-600 hover:text-yellow-900">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <form action="{{ route('invoices.destroy', $invoice) }}" method="POST" onsubmit="return confirm('Delete this draft?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-900">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
                                     @endif
                                 </div>
                             </td>

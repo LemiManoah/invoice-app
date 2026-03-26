@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
             $table->string('invoice_number')->unique();
-            $table->foreignId('customer_id')->constrained()->onDelete('cascade');
-            $table->foreignId('order_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('customer_id')->constrained()->restrictOnDelete();
+            $table->foreignId('order_id')->nullable()->constrained()->nullOnDelete();
             $table->date('invoice_date');
             $table->date('due_date')->nullable();
             $table->string('status')->default('draft');
@@ -28,10 +28,13 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamp('issued_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();
-            $table->foreignId('cancelled_by')->nullable()->constrained('users');
+            $table->foreignId('cancelled_by')->nullable()->constrained('users')->nullOnDelete();
             $table->text('cancellation_reason')->nullable();
-            $table->foreignId('created_by')->nullable()->constrained('users');
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+
+            $table->index(['status', 'due_date']);
+            $table->index('invoice_date');
         });
     }
 

@@ -3,66 +3,50 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Payment\CreatePaymentAction;
-use App\Actions\Payment\DeletePaymentAction;
+use App\Actions\Payment\VoidPaymentAction;
 use App\Http\Requests\StorePaymentRequest;
+use App\Http\Requests\VoidPaymentRequest;
 use App\Models\Invoice;
 use App\Models\Payment;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class PaymentController extends Controller
 {
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StorePaymentRequest $request, Invoice $invoice)
-    {
-        $data = $request->validated();
-
-        return DB::transaction(function () use ($data, $invoice) {
-            $payment = (new CreatePaymentAction)($data, $invoice);
-
-            // Update invoice totals
-            $invoice->amount_paid += $payment->amount;
-            $invoice->balance_due -= $payment->amount;
-
-            if ($invoice->balance_due <= 0) {
-                $invoice->status = 'paid';
-            } else {
-                $invoice->status = 'partially_paid';
-            }
-
-            $invoice->save();
-
-            return redirect()->route('invoices.show', $invoice)
-                ->with('success', 'Payment recorded successfully.');
-        });
+    public function __construct(
+        private readonly CreatePaymentAction $createPayment,
+        private readonly VoidPaymentAction $voidPayment,
+    ) {
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Payment $payment)
+    public function index(): View
     {
-        if ($payment->status === 'voided') {
-            return back()->with('error', 'Payment is already voided.');
-        }
-        return DB::transaction(function () use ($payment) {
-            $invoice = $payment->invoice;
-            // Rollback invoice totals
-            $invoice->amount_paid -= $payment->amount;
-            $invoice->balance_due += $payment->amount;
+        $payments = Payment::with(['invoice.customer', 'receipt', 'receiver', 'voider'])
+            ->latest('payment_date')
+            ->paginate(15);
 
-            if ($invoice->amount_paid <= 0) {
-                $invoice->status = 'issued';
-            } else {
-                $invoice->status = 'partially_paid';
-            }
+        return view('payments.index', compact('payments'));
+    }
 
-            $invoice->save();
+    public function show(Payment $payment): View
+    {
+        $payment->load(['invoice.customer', 'receipt', 'receiver', 'voider']);
 
-            // Void the payment via action
-            (new DeletePaymentAction)($payment);
-            return back()->with('success', 'Payment voided successfully.');
-        });
+        return view('payments.show', compact('payment'));
+    }
+
+    public function store(StorePaymentRequest $request, Invoice $invoice): RedirectResponse
+    {
+        ($this->createPayment)($request->validated(), $invoice);
+
+        return redirect()->route('invoices.show', $invoice)
+            ->with('success', 'Payment recorded successfully.');
+    }
+
+    public function void(VoidPaymentRequest $request, Payment $payment): RedirectResponse
+    {
+        ($this->voidPayment)($payment, $request->validated('void_reason'));
+
+        return back()->with('success', 'Payment voided successfully.');
     }
 }

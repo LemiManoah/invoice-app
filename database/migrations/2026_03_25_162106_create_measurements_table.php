@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('measurements', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained()->onDelete('cascade');
+            $table->foreignId('customer_id')->constrained()->restrictOnDelete();
             $table->decimal('neck', 8, 2)->nullable();
             $table->decimal('chest', 8, 2)->nullable();
             $table->decimal('waist', 8, 2)->nullable();
@@ -32,7 +32,7 @@ return new class extends Migration
             $table->text('posture_notes')->nullable();
             $table->text('fitting_notes')->nullable();
             $table->boolean('is_current')->default(false);
-            $table->foreignId('measured_by')->nullable()->constrained('users');
+            $table->foreignId('measured_by')->nullable()->constrained('users')->nullOnDelete();
             $table->date('measurement_date')->nullable();
             $table->timestamps();
         });

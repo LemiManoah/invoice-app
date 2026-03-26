@@ -2,12 +2,18 @@
 
 namespace App\Actions\Invoice;
 
+use App\Actions\Audit\CreateAuditLogAction;
 use App\Models\Invoice;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class CreateInvoiceAction
 {
+    public function __construct(
+        private readonly CreateAuditLogAction $createAuditLog,
+    ) {
+    }
+
     public function __invoke(array $data): Invoice
     {
         return DB::transaction(function () use ($data) {
@@ -29,12 +35,16 @@ class CreateInvoiceAction
             foreach ($data['items'] as $item) {
                 $invoice->items()->create([
                     'item_name' => $item['item_name'],
-                    'description' => $item['description'],
+                    'description' => $item['description'] ?? null,
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'line_total' => $item['quantity'] * $item['unit_price'],
                 ]);
             }
+
+            $invoice->load('items');
+
+            ($this->createAuditLog)('invoice.created', $invoice, null, $invoice->toArray());
 
             return $invoice;
         });

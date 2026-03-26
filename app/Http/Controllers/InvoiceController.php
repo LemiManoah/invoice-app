@@ -2,28 +2,61 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Invoice\CancelInvoiceAction;
+use App\Actions\Invoice\CreateInvoiceAction;
+use App\Actions\Invoice\IssueInvoiceAction;
+use App\Actions\Invoice\SyncInvoiceStatusesAction;
+use App\Actions\Invoice\UpdateInvoiceAction;
+use App\Http\Requests\CancelInvoiceRequest;
+use App\Http\Requests\StoreInvoiceRequest;
+use App\Http\Requests\UpdateInvoiceRequest;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Order;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class InvoiceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $invoices = Invoice::with('customer')->latest()->paginate(10);
+    public function __construct(
+        private readonly CreateInvoiceAction $createInvoice,
+        private readonly UpdateInvoiceAction $updateInvoice,
+        private readonly IssueInvoiceAction $issueInvoice,
+        private readonly CancelInvoiceAction $cancelInvoice,
+        private readonly SyncInvoiceStatusesAction $syncInvoiceStatuses,
+    ) {
+    }
 
-        return view('invoices.index', compact('invoices'));
+    public function index(Request $request): View
+    {
+        ($this->syncInvoiceStatuses)();
+
+        $status = $request->input('status');
+        $search = trim((string) $request->string('search'));
+
+        $invoices = Invoice::with('customer')
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($invoiceQuery) use ($search) {
+                    $invoiceQuery->where('invoice_number', 'like', "%{$search}%")
+                        ->orWhereHas('customer', function ($customerQuery) use ($search) {
+                            $customerQuery->where('full_name', 'like', "%{$search}%")
+                                ->orWhere('phone', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->latest('invoice_date')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('invoices.index', compact('invoices', 'status', 'search'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request)
+    public function create(Request $request): View
     {
         $customers = Customer::orderBy('full_name')->get();
         $selected_customer_id = $request->query('customer_id');
@@ -41,10 +74,10 @@ class InvoiceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreInvoiceRequest $request)
+    public function store(StoreInvoiceRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $invoice = (new CreateInvoiceAction)($data);
+        $invoice = ($this->createInvoice)($data);
 
         return redirect()->route('invoices.show', $invoice)
             ->with('success', 'Invoice created successfully.');
@@ -53,9 +86,11 @@ class InvoiceController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Invoice $invoice)
+    public function show(Invoice $invoice): View
     {
-        $invoice->load(['customer', 'order', 'items', 'payments.receiver']);
+        ($this->syncInvoiceStatuses)();
+
+        $invoice->load(['customer', 'order', 'items', 'payments.receiver', 'payments.receipt', 'payments.voider']);
 
         return view('invoices.show', compact('invoice'));
     }
@@ -63,7 +98,7 @@ class InvoiceController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Invoice $invoice)
+    public function edit(Invoice $invoice): View|RedirectResponse
     {
         if ($invoice->status !== 'draft') {
             return redirect()->route('invoices.show', $invoice)
@@ -72,21 +107,27 @@ class InvoiceController extends Controller
 
         $invoice->load('items');
         $customers = Customer::orderBy('full_name')->get();
+        $orders = Order::where('customer_id', $invoice->customer_id)
+            ->where(function ($query) use ($invoice) {
+                $query->whereDoesntHave('invoice')
+                    ->orWhere('id', $invoice->order_id);
+            })
+            ->get();
 
-        return view('invoices.edit', compact('invoice', 'customers'));
+        return view('invoices.edit', compact('invoice', 'customers', 'orders'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateInvoiceRequest $request, Invoice $invoice)
+    public function update(UpdateInvoiceRequest $request, Invoice $invoice): RedirectResponse
     {
         if ($invoice->status !== 'draft') {
             return redirect()->route('invoices.show', $invoice)
                 ->with('error', 'Only draft invoices can be edited.');
         }
         $data = $request->validated();
-        (new UpdateInvoiceAction)($invoice, $data);
+        ($this->updateInvoice)($invoice, $data);
 
         return redirect()->route('invoices.show', $invoice)
             ->with('success', 'Invoice updated successfully.');
@@ -95,16 +136,9 @@ class InvoiceController extends Controller
     /**
      * Issue the invoice.
      */
-    public function issue(Invoice $invoice)
+    public function issue(Invoice $invoice): RedirectResponse
     {
-        if ($invoice->status !== 'draft') {
-            return back()->with('error', 'Invoice is already issued or cancelled.');
-        }
-
-        $invoice->update([
-            'status' => 'issued',
-            'issued_at' => now(),
-        ]);
+        ($this->issueInvoice)($invoice);
 
         return back()->with('success', 'Invoice issued successfully.');
     }
@@ -112,31 +146,17 @@ class InvoiceController extends Controller
     /**
      * Cancel the invoice.
      */
-    public function cancel(Request $request, Invoice $invoice)
+    public function cancel(CancelInvoiceRequest $request, Invoice $invoice): RedirectResponse
     {
-        $request->validate(['cancellation_reason' => 'required|string']);
-
-        $invoice->update([
-            'status' => 'cancelled',
-            'cancelled_at' => now(),
-            'cancelled_by' => Auth::id(),
-            'cancellation_reason' => $request->cancellation_reason,
-        ]);
+        ($this->cancelInvoice)($invoice, $request->validated('cancellation_reason'));
 
         return back()->with('success', 'Invoice cancelled successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Invoice $invoice)
+    public function print(Invoice $invoice): View
     {
-        if ($invoice->status !== 'draft') {
-            return back()->with('error', 'Only draft invoices can be deleted.');
-        }
-        (new DeleteInvoiceAction)($invoice);
+        $invoice->load(['customer', 'items']);
 
-        return redirect()->route('invoices.index')
-            ->with('success', 'Invoice deleted successfully.');
+        return view('invoices.print', compact('invoice'));
     }
 }
