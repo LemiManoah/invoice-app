@@ -75,6 +75,7 @@
                                     @endcan
                                     @can('print', $invoice)
                                         <a href="{{ route('invoices.print', $invoice) }}"
+                                            target="_blank" rel="noopener"
                                             class="inline-flex items-center rounded-md border border-blue-200 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/30">
                                             Print
                                         </a>

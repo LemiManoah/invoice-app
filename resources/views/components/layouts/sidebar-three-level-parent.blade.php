@@ -1,7 +1,7 @@
 @props(['active' => false, 'title' => '', 'icon' => 'fas-list'])
 
 <div x-data="{ subOpen: {{ $active ? 'true' : 'false' }} }">
-    <button @click="
+    <button type="button" @click="
         if (sidebarOpen) {
             subOpen = !subOpen;
         } else {

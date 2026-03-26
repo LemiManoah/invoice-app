@@ -31,17 +31,17 @@ final class AppServiceProvider extends ServiceProvider
      *
      * @var array<class-string, class-string>
      */
-    // protected $policies = [
-    //     Customer::class => CustomerPolicy::class,
-    //     Invoice::class => InvoicePolicy::class,
-    //     Payment::class => PaymentPolicy::class,
-    //     Receipt::class => ReceiptPolicy::class,
-    //     Expense::class => ExpensePolicy::class,
-    //     Order::class => OrderPolicy::class,
-    //     Measurement::class => MeasurementPolicy::class,
-    //     AuditLog::class => AuditLogPolicy::class,
-    //     User::class => UserPolicy::class,
-    // ];
+    protected $policies = [
+        Customer::class => CustomerPolicy::class,
+        Invoice::class => InvoicePolicy::class,
+        Payment::class => PaymentPolicy::class,
+        Receipt::class => ReceiptPolicy::class,
+        Expense::class => ExpensePolicy::class,
+        Order::class => OrderPolicy::class,
+        Measurement::class => MeasurementPolicy::class,
+        AuditLog::class => AuditLogPolicy::class,
+        User::class => UserPolicy::class,
+    ];
 
     /**
      * Register any application authentication / authorization services.

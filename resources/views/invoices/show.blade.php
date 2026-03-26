@@ -42,7 +42,7 @@
             @endcan
 
             @can('print', $invoice)
-                <a href="{{ route('invoices.print', $invoice) }}" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition">
+                <a href="{{ route('invoices.print', $invoice) }}" target="_blank" rel="noopener" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition">
                     <i class="fas fa-print mr-2"></i> Print
                 </a>
             @endcan

@@ -1,56 +1,93 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $invoice->invoice_number }}</title>
-    <script>
-        window.addEventListener('load', () => window.print());
-    </script>
-</head>
-<body style="font-family: Arial, sans-serif; padding: 32px; color: #111827;">
-    <h1 style="margin-bottom: 4px;">Invoice {{ $invoice->invoice_number }}</h1>
-    <p style="margin-top: 0;">Date: {{ $invoice->invoice_date->format('M d, Y') }}</p>
-    @if($invoice->due_date)
-        <p>Due: {{ $invoice->due_date->format('M d, Y') }}</p>
-    @endif
-    <hr style="margin: 24px 0;">
-    <p><strong>Customer:</strong> {{ $invoice->customer->full_name }}</p>
-    <p><strong>Phone:</strong> {{ $invoice->customer->phone }}</p>
+@extends('reports.print.layout')
 
-    <table style="width: 100%; border-collapse: collapse; margin-top: 24px;">
-        <thead>
-            <tr>
-                <th style="text-align: left; border-bottom: 1px solid #d1d5db; padding: 8px 0;">Item</th>
-                <th style="text-align: center; border-bottom: 1px solid #d1d5db; padding: 8px 0;">Qty</th>
-                <th style="text-align: right; border-bottom: 1px solid #d1d5db; padding: 8px 0;">Price</th>
-                <th style="text-align: right; border-bottom: 1px solid #d1d5db; padding: 8px 0;">Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($invoice->items as $item)
-                <tr>
-                    <td style="padding: 8px 0;">
-                        <div>{{ $item->item_name }}</div>
-                        @if($item->description)
-                            <div style="font-size: 12px; color: #6b7280;">{{ $item->description }}</div>
-                        @endif
-                    </td>
-                    <td style="padding: 8px 0; text-align: center;">{{ $item->quantity }}</td>
-                    <td style="padding: 8px 0; text-align: right;">{{ number_format($item->unit_price, 2) }}</td>
-                    <td style="padding: 8px 0; text-align: right;">{{ number_format($item->line_total, 2) }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+@section('title', 'Invoice '.$invoice->invoice_number)
 
-    <div style="margin-top: 24px; text-align: right;">
-        <p><strong>Subtotal:</strong> {{ number_format($invoice->subtotal_amount, 2) }}</p>
-        <p><strong>Discount:</strong> {{ number_format($invoice->discount_amount, 2) }}</p>
-        <p><strong>Tax:</strong> {{ number_format($invoice->tax_amount, 2) }}</p>
-        <p style="font-size: 18px;"><strong>Total:</strong> {{ number_format($invoice->total_amount, 2) }}</p>
-        <p><strong>Paid:</strong> {{ number_format($invoice->amount_paid, 2) }}</p>
-        <p><strong>Balance Due:</strong> {{ number_format($invoice->balance_due, 2) }}</p>
+@section('content')
+    <div class="header">
+        <div>
+            <h1>Invoice {{ $invoice->invoice_number }}</h1>
+            <p class="meta">Date: {{ $invoice->invoice_date->format('M d, Y') }}</p>
+            @if($invoice->due_date)
+                <p class="meta">Due Date: {{ $invoice->due_date->format('M d, Y') }}</p>
+            @endif
+            <p class="meta">Status: {{ ucfirst(str_replace('_', ' ', $invoice->status)) }}</p>
+        </div>
     </div>
-</body>
-</html>
+
+    <div class="section">
+        <div class="section-title">Customer</div>
+        <p><strong>{{ $invoice->customer->full_name }}</strong></p>
+        <p class="muted">{{ $invoice->customer->phone }}</p>
+        @if($invoice->customer->email)
+            <p class="muted">{{ $invoice->customer->email }}</p>
+        @endif
+        @if($invoice->customer->address)
+            <p class="muted">{{ $invoice->customer->address }}</p>
+        @endif
+    </div>
+
+    <div class="section">
+        <div class="section-title">Items</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Description</th>
+                    <th class="text-right">Qty</th>
+                    <th class="text-right">Unit Price</th>
+                    <th class="text-right">Line Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($invoice->items as $item)
+                    <tr>
+                        <td>{{ $item->item_name }}</td>
+                        <td>{{ $item->description ?: '-' }}</td>
+                        <td class="text-right">{{ $item->quantity }}</td>
+                        <td class="text-right">{{ number_format($item->unit_price, 2) }}</td>
+                        <td class="text-right">{{ number_format($item->line_total, 2) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Totals</div>
+        <table>
+            <tbody>
+                <tr>
+                    <td>Subtotal</td>
+                    <td class="text-right">{{ number_format($invoice->subtotal_amount, 2) }}</td>
+                </tr>
+                <tr>
+                    <td>Discount</td>
+                    <td class="text-right">{{ number_format($invoice->discount_amount, 2) }}</td>
+                </tr>
+                <tr>
+                    <td>Tax</td>
+                    <td class="text-right">{{ number_format($invoice->tax_amount, 2) }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Total</strong></td>
+                    <td class="text-right"><strong>{{ number_format($invoice->total_amount, 2) }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Paid</td>
+                    <td class="text-right">{{ number_format($invoice->amount_paid, 2) }}</td>
+                </tr>
+                <tr>
+                    <td>Balance Due</td>
+                    <td class="text-right">{{ number_format($invoice->balance_due, 2) }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    @if($invoice->notes)
+        <div class="section">
+            <div class="section-title">Notes</div>
+            <p>{{ $invoice->notes }}</p>
+        </div>
+    @endif
+@endsection

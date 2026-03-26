@@ -1,33 +1,16 @@
 <x-layouts.app title="Edit Invoice">
-    <div x-data='{
-        items: @json($invoice->items->map(fn ($item) => [
-            "item_name" => $item->item_name,
-            "description" => $item->description,
-            "quantity" => $item->quantity,
-            "unit_price" => (float) $item->unit_price,
-        ])->values()),
-        subtotal: {{ (float) $invoice->subtotal_amount }},
-        discount: {{ (float) $invoice->discount_amount }},
-        tax: {{ (float) $invoice->tax_amount }},
-        total: {{ (float) $invoice->total_amount }},
-        addItem() {
-            this.items.push({ item_name: "", description: "", quantity: 1, unit_price: 0 });
-            this.calculateTotals();
-        },
-        removeItem(index) {
-            if (this.items.length > 1) {
-                this.items.splice(index, 1);
-                this.calculateTotals();
-            }
-        },
-        calculateTotals() {
-            this.subtotal = this.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
-            this.total = (this.subtotal - this.discount) + this.tax;
-        },
-        formatCurrency(amount) {
-            return new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
-        }
-    }'>
+    <div x-data="editInvoiceForm({{ \Illuminate\Support\Js::from([
+        'items' => $invoice->items->map(static fn ($item): array => [
+            'item_name' => $item->item_name,
+            'description' => $item->description,
+            'quantity' => (int) $item->quantity,
+            'unit_price' => (float) $item->unit_price,
+        ])->values()->all(),
+        'subtotal' => (float) $invoice->subtotal_amount,
+        'discount' => (float) $invoice->discount_amount,
+        'tax' => (float) $invoice->tax_amount,
+        'total' => (float) $invoice->total_amount,
+    ]) }})">
         <div class="mb-6">
             <a href="{{ route('invoices.show', $invoice) }}" class="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 mb-2 inline-block">
                 <i class="fas fa-arrow-left mr-1"></i> Back to Invoice
@@ -131,4 +114,45 @@
             </div>
         </form>
     </div>
+
+    <script>
+        function editInvoiceForm(config) {
+            return {
+                items: config.items,
+                subtotal: config.subtotal,
+                discount: config.discount,
+                tax: config.tax,
+                total: config.total,
+
+                addItem() {
+                    this.items.push({
+                        item_name: '',
+                        description: '',
+                        quantity: 1,
+                        unit_price: 0,
+                    });
+                    this.calculateTotals();
+                },
+
+                removeItem(index) {
+                    if (this.items.length > 1) {
+                        this.items.splice(index, 1);
+                        this.calculateTotals();
+                    }
+                },
+
+                calculateTotals() {
+                    this.subtotal = this.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+                    this.total = (this.subtotal - this.discount) + this.tax;
+                },
+
+                formatCurrency(amount) {
+                    return new Intl.NumberFormat('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    }).format(amount);
+                },
+            };
+        }
+    </script>
 </x-layouts.app>

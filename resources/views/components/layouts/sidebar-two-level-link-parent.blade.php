@@ -1,7 +1,7 @@
 @props(['active' => false, 'title' => '', 'icon' => 'fas-list'])
 
 <li x-data="{ open: {{ $active ? 'true' : 'false' }} }">
-    <button @click="
+    <button type="button" @click="
         if (sidebarOpen) {
             open = !open;
         } else {

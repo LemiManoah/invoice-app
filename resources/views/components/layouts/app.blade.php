@@ -103,7 +103,7 @@
                                     ])>{{ session('status') ?? session('success') ?? session('error') }}</p>
                                 </div>
                                 <div class="ml-auto pl-3">
-                                    <button @click="showFlashMessage = false"
+                                    <button type="button" @click="showFlashMessage = false"
                                         class="inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2"
                                         type="button">
                                         <span class="sr-only">{{ __('Dismiss') }}</span>

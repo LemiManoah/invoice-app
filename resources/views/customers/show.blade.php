@@ -103,22 +103,22 @@
             <div x-data="{ activeTab: 'orders' }">
                 <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
                     <nav class="-mb-px flex space-x-8">
-                        <button @click="activeTab = 'orders'" 
+                        <button type="button" @click="activeTab = 'orders'" 
                                 :class="activeTab === 'orders' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                                 class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition">
                             Recent Orders
                         </button>
-                        <button @click="activeTab = 'invoices'" 
+                        <button type="button" @click="activeTab = 'invoices'" 
                                 :class="activeTab === 'invoices' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                                 class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition">
                             Invoices
                         </button>
-                        <button @click="activeTab = 'measurements'" 
+                        <button type="button" @click="activeTab = 'measurements'" 
                                 :class="activeTab === 'measurements' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                                 class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition">
                             Measurements
                         </button>
-                        <button @click="activeTab = 'payments'" 
+                        <button type="button" @click="activeTab = 'payments'" 
                                 :class="activeTab === 'payments' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                                 class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition">
                             Payments

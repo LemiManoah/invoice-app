@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between h-16 px-4">
         <!-- Left side: Logo and toggle -->
         <div class="flex items-center">
-            <button @click="toggleSidebar"
+            <button type="button" @click="toggleSidebar"
                 class="p-2 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
@@ -17,7 +17,7 @@
         <div class="flex items-center space-x-4">
             <!-- Theme Toggle -->
             <div x-data="{ open: false }" class="relative">
-                <button @click="open = !open"
+                <button type="button" @click="open = !open"
                     class="p-2 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-colors duration-200">
                     <!-- Sun icon for light mode -->
                     <svg x-show="localStorage.theme !== 'dark'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
@@ -90,7 +90,7 @@
             </div>
             <!-- Profile -->
             <div x-data="{ open: false }" class="relative">
-                <button @click="open = !open" class="flex items-center focus:outline-none">
+                <button type="button" @click="open = !open" class="flex items-center focus:outline-none">
                     <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
                         <span
                             class="flex h-full w-full items-center justify-center rounded-lg bg-gray-200 text-black dark:bg-gray-700 dark:text-white">
