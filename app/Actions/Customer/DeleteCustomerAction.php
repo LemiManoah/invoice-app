@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Customer;
 
 use App\Models\Customer;
 use Illuminate\Validation\ValidationException;
 
-class DeleteCustomerAction
+final readonly class DeleteCustomerAction
 {
-    public function __invoke(Customer $customer): void
+    public function handle(Customer $customer): void
     {
         if (
             $customer->orders()->exists()

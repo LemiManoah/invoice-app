@@ -1,27 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Invoice;
 
 use App\Actions\Audit\CreateAuditLogAction;
 use App\Models\Invoice;
 use Illuminate\Support\Facades\DB;
 
-class UpdateInvoiceAction
+final readonly class UpdateInvoiceAction
 {
     public function __construct(
-        private readonly CreateAuditLogAction $createAuditLog,
+        private CreateAuditLogAction $createAuditLog,
     ) {
     }
 
-    public function __invoke(Invoice $invoice, array $data): Invoice
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function handle(Invoice $invoice, array $data): Invoice
     {
-        return DB::transaction(function () use ($invoice, $data) {
+        return DB::transaction(function () use ($invoice, $data): Invoice {
             $before = $invoice->load('items')->toArray();
-            $subtotal = 0;
-
-            foreach ($data['items'] as $item) {
-                $subtotal += $item['quantity'] * $item['unit_price'];
-            }
+            $subtotal = collect($data['items'])->sum(
+                static fn (array $item): float => (float) $item['quantity'] * (float) $item['unit_price']
+            );
 
             $invoice->update([
                 'customer_id' => $data['customer_id'],
@@ -32,25 +35,25 @@ class UpdateInvoiceAction
                 'subtotal_amount' => $subtotal,
                 'discount_amount' => $data['discount_amount'] ?? 0,
                 'tax_amount' => $data['tax_amount'] ?? 0,
-                'total_amount' => ($subtotal - ($data['discount_amount'] ?? 0)) + ($data['tax_amount'] ?? 0),
-                'balance_due' => ($subtotal - ($data['discount_amount'] ?? 0)) + ($data['tax_amount'] ?? 0),
+                'total_amount' => ($subtotal - (float) ($data['discount_amount'] ?? 0)) + (float) ($data['tax_amount'] ?? 0),
+                'balance_due' => ($subtotal - (float) ($data['discount_amount'] ?? 0)) + (float) ($data['tax_amount'] ?? 0),
                 'amount_paid' => 0,
             ]);
 
             $invoice->items()->delete();
+
             foreach ($data['items'] as $item) {
                 $invoice->items()->create([
                     'item_name' => $item['item_name'],
                     'description' => $item['description'] ?? null,
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
-                    'line_total' => $item['quantity'] * $item['unit_price'],
+                    'line_total' => (float) $item['quantity'] * (float) $item['unit_price'],
                 ]);
             }
 
             $invoice->load('items');
-
-            ($this->createAuditLog)('invoice.updated', $invoice, $before, $invoice->toArray());
+            $this->createAuditLog->handle('invoice.updated', $invoice, $before, $invoice->toArray());
 
             return $invoice;
         });

@@ -1,20 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Invoice;
 
 use App\Actions\Audit\CreateAuditLogAction;
 use App\Models\Invoice;
 use Illuminate\Validation\ValidationException;
 
-class IssueInvoiceAction
+final readonly class IssueInvoiceAction
 {
     public function __construct(
-        private readonly CreateAuditLogAction $createAuditLog,
-        private readonly RefreshInvoiceStatusAction $refreshInvoiceStatus,
+        private CreateAuditLogAction $createAuditLog,
+        private RefreshInvoiceStatusAction $refreshInvoiceStatus,
     ) {
     }
 
-    public function __invoke(Invoice $invoice): Invoice
+    public function handle(Invoice $invoice): Invoice
     {
         if ($invoice->status !== 'draft') {
             throw ValidationException::withMessages([
@@ -33,13 +35,12 @@ class IssueInvoiceAction
             'status' => 'issued',
         ])->save();
 
-        ($this->refreshInvoiceStatus)($invoice);
-
-        ($this->createAuditLog)(
+        $this->refreshInvoiceStatus->handle($invoice);
+        $this->createAuditLog->handle(
             'invoice.issued',
             $invoice,
             null,
-            $invoice->fresh()->only(['status', 'issued_at', 'amount_paid', 'balance_due'])
+            $invoice->fresh()->only(['status', 'issued_at', 'amount_paid', 'balance_due']),
         );
 
         return $invoice->refresh();

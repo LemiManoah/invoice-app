@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Measurement;
 
 use App\Models\Measurement;
 
-class DeleteMeasurementAction
+final readonly class DeleteMeasurementAction
 {
-    public function __invoke(Measurement $measurement): void
+    public function handle(Measurement $measurement): void
     {
         $measurement->delete();
     }

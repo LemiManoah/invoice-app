@@ -1,24 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Actions\Dashboard\ComputeDashboardDataAction;
 use App\Actions\Invoice\SyncInvoiceStatusesAction;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\View\View;
 
-class DashboardController extends Controller
+final readonly class DashboardController extends Controller implements HasMiddleware
 {
-    public function __construct(
-        private readonly ComputeDashboardDataAction $computeDashboardData,
-        private readonly SyncInvoiceStatusesAction $syncInvoiceStatuses,
-    ) {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:dashboard.view'),
+        ];
     }
 
-    public function index(): View
-    {
-        ($this->syncInvoiceStatuses)();
-        $data = ($this->computeDashboardData)();
+    public function index(
+        ComputeDashboardDataAction $computeDashboardData,
+        SyncInvoiceStatusesAction $syncInvoiceStatuses,
+    ): View {
+        $syncInvoiceStatuses->handle();
 
-        return view('dashboard', $data);
+        return view('dashboard', $computeDashboardData->handle());
     }
 }

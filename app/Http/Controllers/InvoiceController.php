@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Actions\Invoice\CancelInvoiceAction;
@@ -13,36 +15,44 @@ use App\Http\Requests\UpdateInvoiceRequest;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Order;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\View\View;
 
-class InvoiceController extends Controller
+final readonly class InvoiceController extends Controller implements HasMiddleware
 {
-    public function __construct(
-        private readonly CreateInvoiceAction $createInvoice,
-        private readonly UpdateInvoiceAction $updateInvoice,
-        private readonly IssueInvoiceAction $issueInvoice,
-        private readonly CancelInvoiceAction $cancelInvoice,
-        private readonly SyncInvoiceStatusesAction $syncInvoiceStatuses,
-    ) {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:invoices.view', only: ['index', 'show']),
+            new Middleware('permission:invoices.create', only: ['create', 'store']),
+            new Middleware('permission:invoices.update', only: ['edit', 'update']),
+            new Middleware('permission:invoices.issue', only: ['issue']),
+            new Middleware('permission:invoices.cancel', only: ['cancel']),
+            new Middleware('permission:invoices.print', only: ['print']),
+        ];
     }
 
-    public function index(Request $request): View
+    public function index(Request $request, SyncInvoiceStatusesAction $syncInvoiceStatuses): View
     {
-        ($this->syncInvoiceStatuses)();
+        $this->authorize('viewAny', Invoice::class);
 
-        $status = $request->input('status');
-        $search = trim((string) $request->string('search'));
+        $syncInvoiceStatuses->handle();
+        $status = $request->query('status');
+        $search = trim((string) $request->query('search', ''));
 
-        $invoices = Invoice::with('customer')
-            ->when($status, fn ($query) => $query->where('status', $status))
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($invoiceQuery) use ($search) {
-                    $invoiceQuery->where('invoice_number', 'like', "%{$search}%")
-                        ->orWhereHas('customer', function ($customerQuery) use ($search) {
-                            $customerQuery->where('full_name', 'like', "%{$search}%")
-                                ->orWhere('phone', 'like', "%{$search}%");
+        $invoices = Invoice::query()
+            ->with('customer')
+            ->when($status, static fn (Builder $query, string $value) => $query->where('status', $value))
+            ->when($search !== '', function (Builder $query) use ($search): void {
+                $query->where(function (Builder $invoiceQuery) use ($search): void {
+                    $invoiceQuery->where('invoice_number', 'like', sprintf('%%%s%%', $search))
+                        ->orWhereHas('customer', function (Builder $customerQuery) use ($search): void {
+                            $customerQuery->where('full_name', 'like', sprintf('%%%s%%', $search))
+                                ->orWhere('phone', 'like', sprintf('%%%s%%', $search));
                         });
                 });
             })
@@ -53,17 +63,17 @@ class InvoiceController extends Controller
         return view('invoices.index', compact('invoices', 'status', 'search'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(Request $request): View
     {
-        $customers = Customer::orderBy('full_name')->get();
+        $this->authorize('create', Invoice::class);
+
+        $customers = Customer::query()->orderBy('full_name')->get();
         $selected_customer_id = $request->query('customer_id');
         $orders = [];
 
-        if ($selected_customer_id) {
-            $orders = Order::where('customer_id', $selected_customer_id)
+        if ($selected_customer_id !== null) {
+            $orders = Order::query()
+                ->where('customer_id', $selected_customer_id)
                 ->whereDoesntHave('invoice')
                 ->get();
         }
@@ -71,44 +81,38 @@ class InvoiceController extends Controller
         return view('invoices.create', compact('customers', 'selected_customer_id', 'orders'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreInvoiceRequest $request): RedirectResponse
+    public function store(StoreInvoiceRequest $request, CreateInvoiceAction $action): RedirectResponse
     {
-        $data = $request->validated();
-        $invoice = ($this->createInvoice)($data);
+        $this->authorize('create', Invoice::class);
 
-        return redirect()->route('invoices.show', $invoice)
-            ->with('success', 'Invoice created successfully.');
+        $invoice = $action->handle($request->validated());
+
+        return to_route('invoices.show', $invoice)->with('success', 'Invoice created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Invoice $invoice): View
+    public function show(Invoice $invoice, SyncInvoiceStatusesAction $syncInvoiceStatuses): View
     {
-        ($this->syncInvoiceStatuses)();
+        $this->authorize('view', $invoice);
 
+        $syncInvoiceStatuses->handle();
         $invoice->load(['customer', 'order', 'items', 'payments.receiver', 'payments.receipt', 'payments.voider']);
 
         return view('invoices.show', compact('invoice'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Invoice $invoice): View|RedirectResponse
     {
+        $this->authorize('update', $invoice);
+
         if ($invoice->status !== 'draft') {
-            return redirect()->route('invoices.show', $invoice)
-                ->with('error', 'Only draft invoices can be edited.');
+            return to_route('invoices.show', $invoice)->with('error', 'Only draft invoices can be edited.');
         }
 
         $invoice->load('items');
-        $customers = Customer::orderBy('full_name')->get();
-        $orders = Order::where('customer_id', $invoice->customer_id)
-            ->where(function ($query) use ($invoice) {
+        $customers = Customer::query()->orderBy('full_name')->get();
+        $orders = Order::query()
+            ->where('customer_id', $invoice->customer_id)
+            ->where(function (Builder $query) use ($invoice): void {
                 $query->whereDoesntHave('invoice')
                     ->orWhere('id', $invoice->order_id);
             })
@@ -117,44 +121,41 @@ class InvoiceController extends Controller
         return view('invoices.edit', compact('invoice', 'customers', 'orders'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateInvoiceRequest $request, Invoice $invoice): RedirectResponse
+    public function update(UpdateInvoiceRequest $request, Invoice $invoice, UpdateInvoiceAction $action): RedirectResponse
     {
-        if ($invoice->status !== 'draft') {
-            return redirect()->route('invoices.show', $invoice)
-                ->with('error', 'Only draft invoices can be edited.');
-        }
-        $data = $request->validated();
-        ($this->updateInvoice)($invoice, $data);
+        $this->authorize('update', $invoice);
 
-        return redirect()->route('invoices.show', $invoice)
-            ->with('success', 'Invoice updated successfully.');
+        if ($invoice->status !== 'draft') {
+            return to_route('invoices.show', $invoice)->with('error', 'Only draft invoices can be edited.');
+        }
+
+        $action->handle($invoice, $request->validated());
+
+        return to_route('invoices.show', $invoice)->with('success', 'Invoice updated successfully.');
     }
 
-    /**
-     * Issue the invoice.
-     */
-    public function issue(Invoice $invoice): RedirectResponse
+    public function issue(Invoice $invoice, IssueInvoiceAction $action): RedirectResponse
     {
-        ($this->issueInvoice)($invoice);
+        $this->authorize('issue', $invoice);
+
+        $action->handle($invoice);
 
         return back()->with('success', 'Invoice issued successfully.');
     }
 
-    /**
-     * Cancel the invoice.
-     */
-    public function cancel(CancelInvoiceRequest $request, Invoice $invoice): RedirectResponse
+    public function cancel(CancelInvoiceRequest $request, Invoice $invoice, CancelInvoiceAction $action): RedirectResponse
     {
-        ($this->cancelInvoice)($invoice, $request->validated('cancellation_reason'));
+        $this->authorize('cancel', $invoice);
+
+        $action->handle($invoice, $request->validated('cancellation_reason'));
 
         return back()->with('success', 'Invoice cancelled successfully.');
     }
 
     public function print(Invoice $invoice): View
     {
+        $this->authorize('print', $invoice);
+
         $invoice->load(['customer', 'items']);
 
         return view('invoices.print', compact('invoice'));

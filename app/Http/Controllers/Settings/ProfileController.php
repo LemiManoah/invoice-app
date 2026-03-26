@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Settings;
 
 use App\Actions\Profile\UpdateProfileAction;
@@ -7,28 +9,35 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateProfileRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
-class ProfileController extends Controller
+final readonly class ProfileController extends Controller implements HasMiddleware
 {
-    public function __construct(
-        private readonly UpdateProfileAction $updateProfile,
-    ) {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:settings.profile.update', only: ['edit', 'update']),
+        ];
     }
 
     public function edit(Request $request): View
     {
+        $this->authorize('updateProfile', $request->user());
+
         return view('settings.profile', [
             'user' => $request->user(),
         ]);
     }
 
-    public function update(UpdateProfileRequest $request): RedirectResponse
+    public function update(UpdateProfileRequest $request, UpdateProfileAction $action): RedirectResponse
     {
         $user = $request->user();
-        $data = $request->validated();
-        ($this->updateProfile)($user, $data);
+        $this->authorize('updateProfile', $user);
+
+        $action->handle($user, $request->validated());
 
         return to_route('settings.profile.edit')->with('status', __('Profile updated successfully'));
     }
@@ -36,6 +45,7 @@ class ProfileController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         $user = $request->user();
+        $this->authorize('delete', $user);
 
         Auth::logout();
 

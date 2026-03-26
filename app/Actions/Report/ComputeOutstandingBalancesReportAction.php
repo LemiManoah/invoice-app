@@ -1,18 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Report;
 
 use App\Models\Invoice;
 use Carbon\Carbon;
 
-class ComputeOutstandingBalancesReportAction
+final readonly class ComputeOutstandingBalancesReportAction
 {
-    public function __invoke(?string $startDate, ?string $endDate): array
+    /**
+     * @return array<string, mixed>
+     */
+    public function handle(?string $startDate, ?string $endDate): array
     {
         $start = $startDate ? Carbon::parse($startDate) : Carbon::now()->startOfMonth();
         $end = $endDate ? Carbon::parse($endDate) : Carbon::now()->endOfMonth();
 
-        $invoices = Invoice::with('customer')
+        $invoices = Invoice::query()
+            ->with('customer')
             ->whereNotIn('status', ['draft', 'cancelled', 'paid'])
             ->whereBetween('invoice_date', [$start->toDateString(), $end->toDateString()])
             ->orderByDesc('balance_due')

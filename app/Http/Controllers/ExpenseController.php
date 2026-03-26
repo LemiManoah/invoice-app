@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Actions\Expense\CreateExpenseAction;
@@ -12,103 +14,104 @@ use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\View\View;
 
-class ExpenseController extends Controller
+final readonly class ExpenseController extends Controller implements HasMiddleware
 {
-    public function __construct(
-        private readonly CreateExpenseAction $createExpense,
-        private readonly UpdateExpenseAction $updateExpense,
-        private readonly VoidExpenseAction $voidExpense,
-    ) {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:expenses.view', only: ['index', 'show']),
+            new Middleware('permission:expenses.create', only: ['create', 'store']),
+            new Middleware('permission:expenses.update', only: ['edit', 'update']),
+            new Middleware('permission:expenses.void', only: ['void']),
+        ];
     }
 
     public function index(Request $request): View
     {
-        $search = trim((string) $request->string('search'));
-        $status = $request->input('status');
-        $category = $request->input('category');
+        $this->authorize('viewAny', Expense::class);
 
-        $expenses = Expense::with('category')
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($expenseQuery) use ($search) {
-                    $expenseQuery->where('description', 'like', "%{$search}%")
-                        ->orWhere('vendor_name', 'like', "%{$search}%")
-                        ->orWhere('reference_number', 'like', "%{$search}%");
+        $search = trim((string) $request->query('search', ''));
+        $status = $request->query('status');
+        $category = $request->query('category');
+
+        $expenses = Expense::query()
+            ->with('category')
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($expenseQuery) use ($search): void {
+                    $expenseQuery->where('description', 'like', sprintf('%%%s%%', $search))
+                        ->orWhere('vendor_name', 'like', sprintf('%%%s%%', $search))
+                        ->orWhere('reference_number', 'like', sprintf('%%%s%%', $search));
                 });
             })
-            ->when($status, fn ($query) => $query->where('status', $status))
-            ->when($category, fn ($query) => $query->where('expense_category_id', $category))
+            ->when($status, static fn ($query, $value) => $query->where('status', $value))
+            ->when($category, static fn ($query, $value) => $query->where('expense_category_id', $value))
             ->latest('expense_date')
             ->paginate(10)
             ->withQueryString();
-        $categories = ExpenseCategory::where('is_active', true)->orderBy('name')->get();
+
+        $categories = ExpenseCategory::query()->where('is_active', true)->orderBy('name')->get();
 
         return view('expenses.index', compact('expenses', 'categories', 'search', 'status', 'category'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): View
     {
-        $categories = ExpenseCategory::where('is_active', true)->get();
+        $this->authorize('create', Expense::class);
+
+        $categories = ExpenseCategory::query()->where('is_active', true)->get();
 
         return view('expenses.create', compact('categories'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreExpenseRequest $request): RedirectResponse
+    public function store(StoreExpenseRequest $request, CreateExpenseAction $action): RedirectResponse
     {
-        $data = $request->validated();
-        ($this->createExpense)($data);
+        $this->authorize('create', Expense::class);
 
-        return redirect()->route('expenses.index')
-            ->with('success', 'Expense recorded successfully.');
+        $action->handle($request->validated());
+
+        return to_route('expenses.index')->with('success', 'Expense recorded successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Expense $expense): View
     {
+        $this->authorize('view', $expense);
+
         $expense->load(['category', 'creator', 'voider']);
 
         return view('expenses.show', compact('expense'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Expense $expense): View|RedirectResponse
     {
+        $this->authorize('update', $expense);
+
         if ($expense->status === 'voided') {
-            return redirect()->route('expenses.show', $expense)
-                ->with('error', 'Voided expenses cannot be edited.');
+            return to_route('expenses.show', $expense)->with('error', 'Voided expenses cannot be edited.');
         }
 
-        $categories = ExpenseCategory::where('is_active', true)->get();
+        $categories = ExpenseCategory::query()->where('is_active', true)->get();
 
         return view('expenses.edit', compact('expense', 'categories'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateExpenseRequest $request, Expense $expense): RedirectResponse
+    public function update(UpdateExpenseRequest $request, Expense $expense, UpdateExpenseAction $action): RedirectResponse
     {
-        $data = $request->validated();
-        ($this->updateExpense)($expense, $data);
+        $this->authorize('update', $expense);
 
-        return redirect()->route('expenses.index')
-            ->with('success', 'Expense updated successfully.');
+        $action->handle($expense, $request->validated());
+
+        return to_route('expenses.index')->with('success', 'Expense updated successfully.');
     }
 
-    public function void(VoidExpenseRequest $request, Expense $expense): RedirectResponse
+    public function void(VoidExpenseRequest $request, Expense $expense, VoidExpenseAction $action): RedirectResponse
     {
-        ($this->voidExpense)($expense, $request->validated('void_reason'));
+        $this->authorize('void', $expense);
+
+        $action->handle($expense, $request->validated('void_reason'));
 
         return back()->with('success', 'Expense voided.');
     }

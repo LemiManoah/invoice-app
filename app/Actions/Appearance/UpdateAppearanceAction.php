@@ -1,12 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Appearance;
 
 use App\Models\User;
 
-class UpdateAppearanceAction
+final readonly class UpdateAppearanceAction
 {
-    public function __invoke(User $user, array $data): User
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function handle(User $user, array $data): User
     {
         $user->update($data);
 

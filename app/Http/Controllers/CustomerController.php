@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Actions\Customer\CreateCustomerAction;
@@ -8,32 +10,39 @@ use App\Actions\Customer\UpdateCustomerAction;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\View\View;
 
-class CustomerController extends Controller
+final readonly class CustomerController extends Controller implements HasMiddleware
 {
-    public function __construct(
-        private readonly CreateCustomerAction $createCustomer,
-        private readonly UpdateCustomerAction $updateCustomer,
-        private readonly DeleteCustomerAction $deleteCustomer,
-    ) {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:customers.view', only: ['index', 'show']),
+            new Middleware('permission:customers.create', only: ['create', 'store']),
+            new Middleware('permission:customers.update', only: ['edit', 'update']),
+            new Middleware('permission:customers.delete', only: ['destroy']),
+        ];
     }
 
     public function index(Request $request): View
     {
-        $search = trim((string) $request->string('search'));
+        $this->authorize('viewAny', Customer::class);
+
+        $search = trim((string) $request->query('search', ''));
 
         $customers = Customer::query()
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($customerQuery) use ($search) {
-                    $customerQuery->where('full_name', 'like', "%{$search}%")
-                        ->orWhere('phone', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('customer_code', 'like', "%{$search}%");
-                });
-            })
+            ->when(
+                $search !== '',
+                static fn (Builder $query) => $query->where('full_name', 'like', sprintf('%%%s%%', $search))
+                    ->orWhere('phone', 'like', sprintf('%%%s%%', $search))
+                    ->orWhere('email', 'like', sprintf('%%%s%%', $search))
+                    ->orWhere('customer_code', 'like', sprintf('%%%s%%', $search))
+            )
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -41,35 +50,31 @@ class CustomerController extends Controller
         return view('customers.index', compact('customers', 'search'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): View
     {
+        $this->authorize('create', Customer::class);
+
         return view('customers.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreCustomerRequest $request): RedirectResponse
+    public function store(StoreCustomerRequest $request, CreateCustomerAction $action): RedirectResponse
     {
-        $data = $request->validated();
-        $customer = ($this->createCustomer)($data);
+        $this->authorize('create', Customer::class);
+
+        $customer = $action->handle($request->validated());
 
         $customer->update([
-            'customer_code' => 'CUST-'.str_pad($customer->id, 5, '0', STR_PAD_LEFT),
+            'customer_code' => 'CUST-'.str_pad((string) $customer->id, 5, '0', STR_PAD_LEFT),
         ]);
 
-        return redirect()->route('customers.show', $customer)
+        return to_route('customers.show', $customer)
             ->with('success', 'Customer created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Customer $customer): View
     {
+        $this->authorize('view', $customer);
+
         $customer->load([
             'measurements',
             'orders',
@@ -81,34 +86,30 @@ class CustomerController extends Controller
         return view('customers.show', compact('customer'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Customer $customer): View
     {
+        $this->authorize('update', $customer);
+
         return view('customers.edit', compact('customer'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateCustomerRequest $request, Customer $customer): RedirectResponse
+    public function update(UpdateCustomerRequest $request, Customer $customer, UpdateCustomerAction $action): RedirectResponse
     {
-        $data = $request->validated();
-        ($this->updateCustomer)($customer, $data);
+        $this->authorize('update', $customer);
 
-        return redirect()->route('customers.show', $customer)
+        $action->handle($customer, $request->validated());
+
+        return to_route('customers.show', $customer)
             ->with('success', 'Customer updated successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Customer $customer): RedirectResponse
+    public function destroy(Customer $customer, DeleteCustomerAction $action): RedirectResponse
     {
-        ($this->deleteCustomer)($customer);
+        $this->authorize('delete', $customer);
 
-        return redirect()->route('customers.index')
+        $action->handle($customer);
+
+        return to_route('customers.index')
             ->with('success', 'Customer deleted successfully.');
     }
 }

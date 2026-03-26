@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Payment;
 
 use App\Models\Payment;
 use App\Models\Receipt;
 
-class GenerateReceiptAction
+final readonly class GenerateReceiptAction
 {
-    public function __invoke(Payment $payment): Receipt
+    public function handle(Payment $payment): Receipt
     {
         if ($payment->receipt !== null) {
             return $payment->receipt;

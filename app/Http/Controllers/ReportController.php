@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Actions\Invoice\SyncInvoiceStatusesAction;
@@ -10,19 +12,17 @@ use App\Actions\Report\ComputePaymentsReportAction;
 use App\Actions\Report\ComputeProfitLossReportAction;
 use App\Actions\Report\ComputeSalesReportAction;
 use App\Http\Requests\ReportDateRangeRequest;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\View\View;
 
-class ReportController extends Controller
+final readonly class ReportController extends Controller implements HasMiddleware
 {
-    public function __construct(
-        private readonly ComputeSalesReportAction $computeSalesReport,
-        private readonly ComputeExpensesReportAction $computeExpensesReport,
-        private readonly ComputeProfitLossReportAction $computeProfitLossReport,
-        private readonly ComputePaymentsReportAction $computePaymentsReport,
-        private readonly ComputeOutstandingBalancesReportAction $computeOutstandingBalancesReport,
-        private readonly ComputeCustomerStatementAction $computeCustomerStatement,
-        private readonly SyncInvoiceStatusesAction $syncInvoiceStatuses,
-    ) {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:reports.view'),
+        ];
     }
 
     public function index(): View
@@ -30,60 +30,67 @@ class ReportController extends Controller
         return view('reports.index');
     }
 
-    public function sales(ReportDateRangeRequest $request): View
-    {
-        ($this->syncInvoiceStatuses)();
-        $start_date = $request->input('start_date', now()->startOfMonth()->toDateString());
-        $end_date = $request->input('end_date', now()->endOfMonth()->toDateString());
-        $data = ($this->computeSalesReport)($start_date, $end_date);
+    public function sales(
+        ReportDateRangeRequest $request,
+        ComputeSalesReportAction $action,
+        SyncInvoiceStatusesAction $syncInvoiceStatuses,
+    ): View {
+        $syncInvoiceStatuses->handle();
 
-        return view('reports.sales', $data);
+        return view('reports.sales', $action->handle(
+            $request->input('start_date', now()->startOfMonth()->toDateString()),
+            $request->input('end_date', now()->endOfMonth()->toDateString()),
+        ));
     }
 
-    public function expenses(ReportDateRangeRequest $request): View
+    public function expenses(ReportDateRangeRequest $request, ComputeExpensesReportAction $action): View
     {
-        $start_date = $request->input('start_date', now()->startOfMonth()->toDateString());
-        $end_date = $request->input('end_date', now()->endOfMonth()->toDateString());
-        $data = ($this->computeExpensesReport)($start_date, $end_date);
-
-        return view('reports.expenses', $data);
+        return view('reports.expenses', $action->handle(
+            $request->input('start_date', now()->startOfMonth()->toDateString()),
+            $request->input('end_date', now()->endOfMonth()->toDateString()),
+        ));
     }
 
-    public function profitLoss(ReportDateRangeRequest $request): View
+    public function payments(ReportDateRangeRequest $request, ComputePaymentsReportAction $action): View
     {
-        $start_date = $request->input('start_date', now()->startOfMonth()->toDateString());
-        $end_date = $request->input('end_date', now()->endOfMonth()->toDateString());
-        $data = ($this->computeProfitLossReport)($start_date, $end_date);
-
-        return view('reports.profit_loss', $data);
+        return view('reports.payments', $action->handle(
+            $request->input('start_date', now()->startOfMonth()->toDateString()),
+            $request->input('end_date', now()->endOfMonth()->toDateString()),
+        ));
     }
 
-    public function payments(ReportDateRangeRequest $request): View
-    {
-        $start_date = $request->input('start_date', now()->startOfMonth()->toDateString());
-        $end_date = $request->input('end_date', now()->endOfMonth()->toDateString());
-        $data = ($this->computePaymentsReport)($start_date, $end_date);
+    public function outstandingBalances(
+        ReportDateRangeRequest $request,
+        ComputeOutstandingBalancesReportAction $action,
+        SyncInvoiceStatusesAction $syncInvoiceStatuses,
+    ): View {
+        $syncInvoiceStatuses->handle();
 
-        return view('reports.payments', $data);
+        return view('reports.outstanding_balances', $action->handle(
+            $request->input('start_date', now()->startOfMonth()->toDateString()),
+            $request->input('end_date', now()->endOfMonth()->toDateString()),
+        ));
     }
 
-    public function outstandingBalances(ReportDateRangeRequest $request): View
-    {
-        ($this->syncInvoiceStatuses)();
-        $start_date = $request->input('start_date', now()->startOfMonth()->toDateString());
-        $end_date = $request->input('end_date', now()->endOfMonth()->toDateString());
-        $data = ($this->computeOutstandingBalancesReport)($start_date, $end_date);
+    public function customerStatement(
+        ReportDateRangeRequest $request,
+        ComputeCustomerStatementAction $action,
+        SyncInvoiceStatusesAction $syncInvoiceStatuses,
+    ): View {
+        $syncInvoiceStatuses->handle();
 
-        return view('reports.outstanding_balances', $data);
+        return view('reports.customer_statement', $action->handle(
+            $request->integer('customer_id') ?: null,
+            $request->input('start_date', now()->startOfMonth()->toDateString()),
+            $request->input('end_date', now()->endOfMonth()->toDateString()),
+        ));
     }
 
-    public function customerStatement(ReportDateRangeRequest $request): View
+    public function profitLoss(ReportDateRangeRequest $request, ComputeProfitLossReportAction $action): View
     {
-        ($this->syncInvoiceStatuses)();
-        $start_date = $request->input('start_date', now()->startOfMonth()->toDateString());
-        $end_date = $request->input('end_date', now()->endOfMonth()->toDateString());
-        $data = ($this->computeCustomerStatement)($request->integer('customer_id') ?: null, $start_date, $end_date);
-
-        return view('reports.customer_statement', $data);
+        return view('reports.profit_loss', $action->handle(
+            $request->input('start_date', now()->startOfMonth()->toDateString()),
+            $request->input('end_date', now()->endOfMonth()->toDateString()),
+        ));
     }
 }

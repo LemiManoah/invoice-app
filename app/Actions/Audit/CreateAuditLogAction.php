@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Audit;
 
 use App\Models\AuditLog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
-class CreateAuditLogAction
+final readonly class CreateAuditLogAction
 {
-    public function __invoke(
+    public function handle(
         string $actionType,
         Model|string $entity,
         ?array $oldValues = null,

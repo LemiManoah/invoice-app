@@ -1,19 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Report;
 
 use App\Models\Customer;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
-class ComputeCustomerStatementAction
+final readonly class ComputeCustomerStatementAction
 {
-    public function __invoke(?int $customerId, ?string $startDate, ?string $endDate): array
+    /**
+     * @return array<string, mixed>
+     */
+    public function handle(?int $customerId, ?string $startDate, ?string $endDate): array
     {
         $start = $startDate ? Carbon::parse($startDate) : Carbon::now()->startOfMonth();
         $end = $endDate ? Carbon::parse($endDate) : Carbon::now()->endOfMonth();
-        $customer = $customerId ? Customer::find($customerId) : null;
+        $customer = $customerId ? Customer::query()->find($customerId) : null;
 
+        /** @var Collection<int, mixed> $invoices */
         $invoices = collect();
+        /** @var Collection<int, mixed> $payments */
         $payments = collect();
 
         if ($customer !== null) {
@@ -31,7 +39,7 @@ class ComputeCustomerStatementAction
         }
 
         return [
-            'customers' => Customer::orderBy('full_name')->get(),
+            'customers' => Customer::query()->orderBy('full_name')->get(),
             'customer' => $customer,
             'invoices' => $invoices,
             'payments' => $payments,

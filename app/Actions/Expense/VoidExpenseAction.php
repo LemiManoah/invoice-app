@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Expense;
 
 use App\Actions\Audit\CreateAuditLogAction;
@@ -7,14 +9,14 @@ use App\Models\Expense;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
-class VoidExpenseAction
+final readonly class VoidExpenseAction
 {
     public function __construct(
-        private readonly CreateAuditLogAction $createAuditLog,
+        private CreateAuditLogAction $createAuditLog,
     ) {
     }
 
-    public function __invoke(Expense $expense, string $reason): Expense
+    public function handle(Expense $expense, string $reason): Expense
     {
         if ($expense->isVoided()) {
             throw ValidationException::withMessages([
@@ -31,7 +33,7 @@ class VoidExpenseAction
             'void_reason' => $reason,
         ])->save();
 
-        ($this->createAuditLog)(
+        $this->createAuditLog->handle(
             'expense.voided',
             $expense,
             $before,

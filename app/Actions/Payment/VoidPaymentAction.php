@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Payment;
 
 use App\Actions\Audit\CreateAuditLogAction;
@@ -9,15 +11,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-class VoidPaymentAction
+final readonly class VoidPaymentAction
 {
     public function __construct(
-        private readonly RefreshInvoiceStatusAction $refreshInvoiceStatus,
-        private readonly CreateAuditLogAction $createAuditLog,
+        private RefreshInvoiceStatusAction $refreshInvoiceStatus,
+        private CreateAuditLogAction $createAuditLog,
     ) {
     }
 
-    public function __invoke(Payment $payment, string $reason): Payment
+    public function handle(Payment $payment, string $reason): Payment
     {
         if ($payment->isVoided()) {
             throw ValidationException::withMessages([
@@ -25,7 +27,7 @@ class VoidPaymentAction
             ]);
         }
 
-        return DB::transaction(function () use ($payment, $reason) {
+        return DB::transaction(function () use ($payment, $reason): Payment {
             $before = $payment->only(['status', 'voided_at', 'voided_by', 'void_reason']);
 
             $payment->forceFill([
@@ -35,9 +37,8 @@ class VoidPaymentAction
                 'void_reason' => $reason,
             ])->save();
 
-            ($this->refreshInvoiceStatus)($payment->invoice);
-
-            ($this->createAuditLog)(
+            $this->refreshInvoiceStatus->handle($payment->invoice);
+            $this->createAuditLog->handle(
                 'payment.voided',
                 $payment,
                 $before,

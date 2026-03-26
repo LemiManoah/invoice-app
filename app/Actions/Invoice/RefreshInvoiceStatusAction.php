@@ -1,19 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Invoice;
 
 use App\Models\Invoice;
 
-class RefreshInvoiceStatusAction
+final readonly class RefreshInvoiceStatusAction
 {
-    public function __invoke(Invoice $invoice): Invoice
+    public function handle(Invoice $invoice): Invoice
     {
         if ($invoice->status === 'cancelled') {
             return $invoice;
         }
 
         $today = today();
-
         $amountPaid = (float) $invoice->validPayments()->sum('amount');
         $balanceDue = max((float) $invoice->total_amount - $amountPaid, 0);
 

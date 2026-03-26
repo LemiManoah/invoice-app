@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Settings;
 
 use App\Actions\Password\UpdatePasswordAction;
@@ -7,26 +9,34 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdatePasswordRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\View\View;
 
-class PasswordController extends Controller
+final readonly class PasswordController extends Controller implements HasMiddleware
 {
-    public function __construct(
-        private readonly UpdatePasswordAction $updatePassword,
-    ) {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:settings.password.update', only: ['edit', 'update']),
+        ];
     }
 
     public function edit(Request $request): View
     {
+        $this->authorize('updatePassword', $request->user());
+
         return view('settings.password', [
             'user' => $request->user(),
         ]);
     }
 
-    public function update(UpdatePasswordRequest $request): RedirectResponse
+    public function update(UpdatePasswordRequest $request, UpdatePasswordAction $action): RedirectResponse
     {
-        $data = $request->validated();
-        ($this->updatePassword)($request->user(), $data['password']);
+        $user = $request->user();
+        $this->authorize('updatePassword', $user);
+
+        $action->handle($user, $request->validated('password'));
 
         return back()->with('status', 'password-updated');
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Actions\Measurement\CreateMeasurementAction;
@@ -10,82 +12,88 @@ use App\Http\Requests\UpdateMeasurementRequest;
 use App\Models\Customer;
 use App\Models\Measurement;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\View\View;
 
-class MeasurementController extends Controller
+final readonly class MeasurementController extends Controller implements HasMiddleware
 {
-    public function __construct(
-        private readonly CreateMeasurementAction $createMeasurement,
-        private readonly UpdateMeasurementAction $updateMeasurement,
-        private readonly DeleteMeasurementAction $deleteMeasurement,
-    ) {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:measurements.view', only: ['index', 'show']),
+            new Middleware('permission:measurements.create', only: ['create', 'store']),
+            new Middleware('permission:measurements.update', only: ['edit', 'update']),
+            new Middleware('permission:measurements.delete', only: ['destroy']),
+        ];
     }
 
     public function index(Customer $customer): View
     {
+        $this->authorize('viewAny', Measurement::class);
+
         $measurements = $customer->measurements()->latest()->get();
 
         return view('measurements.index', compact('customer', 'measurements'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(Customer $customer): View
     {
+        $this->authorize('create', Measurement::class);
+
         return view('measurements.create', compact('customer'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreMeasurementRequest $request, Customer $customer): RedirectResponse
-    {
-        $data = $request->validated();
-        ($this->createMeasurement)($customer, $data);
+    public function store(
+        StoreMeasurementRequest $request,
+        Customer $customer,
+        CreateMeasurementAction $action,
+    ): RedirectResponse {
+        $this->authorize('create', Measurement::class);
 
-        return redirect()->route('customers.show', $customer)
+        $action->handle($customer, $request->validated());
+
+        return to_route('customers.show', $customer)
             ->with('success', 'Measurements recorded successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Measurement $measurement): View
     {
+        $this->authorize('view', $measurement);
+
         return view('measurements.show', compact('measurement'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Measurement $measurement): View
     {
+        $this->authorize('update', $measurement);
+
         $customer = $measurement->customer;
 
         return view('measurements.edit', compact('measurement', 'customer'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateMeasurementRequest $request, Measurement $measurement): RedirectResponse
-    {
-        $data = $request->validated();
-        ($this->updateMeasurement)($measurement, $data);
+    public function update(
+        UpdateMeasurementRequest $request,
+        Measurement $measurement,
+        UpdateMeasurementAction $action,
+    ): RedirectResponse {
+        $this->authorize('update', $measurement);
 
-        return redirect()->route('customers.show', $measurement->customer)
+        $action->handle($measurement, $request->validated());
+
+        return to_route('customers.show', $measurement->customer)
             ->with('success', 'Measurements updated successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Measurement $measurement): RedirectResponse
+    public function destroy(Measurement $measurement, DeleteMeasurementAction $action): RedirectResponse
     {
-        ($this->deleteMeasurement)($measurement);
+        $this->authorize('delete', $measurement);
 
-        return redirect()->route('customers.show', $measurement->customer)
+        $customer = $measurement->customer;
+        $action->handle($measurement);
+
+        return to_route('customers.show', $customer)
             ->with('success', 'Measurement record deleted.');
     }
 }

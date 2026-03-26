@@ -1,24 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Report;
 
 use App\Models\Expense;
 use App\Models\Payment;
 use Carbon\Carbon;
 
-class ComputeProfitLossReportAction
+final readonly class ComputeProfitLossReportAction
 {
-    public function __invoke(?string $startDate, ?string $endDate): array
+    /**
+     * @return array<string, mixed>
+     */
+    public function handle(?string $startDate, ?string $endDate): array
     {
         $start = $startDate ? Carbon::parse($startDate) : Carbon::now()->startOfMonth();
         $end = $endDate ? Carbon::parse($endDate) : Carbon::now()->endOfMonth();
 
-        $revenue = Payment::where('status', 'valid')->whereBetween('payment_date', [$start->toDateString(), $end->toDateString()])->sum('amount');
-        $totalExpenses = Expense::where('status', 'valid')->whereBetween('expense_date', [$start->toDateString(), $end->toDateString()])->sum('amount');
-
         return [
-            'revenue' => $revenue,
-            'total_expenses' => $totalExpenses,
+            'revenue' => Payment::query()->where('status', 'valid')->whereBetween('payment_date', [$start->toDateString(), $end->toDateString()])->sum('amount'),
+            'total_expenses' => Expense::query()->where('status', 'valid')->whereBetween('expense_date', [$start->toDateString(), $end->toDateString()])->sum('amount'),
             'start_date' => $start->toDateString(),
             'end_date' => $end->toDateString(),
         ];

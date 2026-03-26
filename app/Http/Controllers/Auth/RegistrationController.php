@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -12,7 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
-class RegistrationController extends Controller
+final readonly class RegistrationController extends Controller
 {
     public function create(): View
     {
@@ -29,7 +31,7 @@ class RegistrationController extends Controller
 
         $validated['password'] = Hash::make($validated['password']);
 
-        event(new Registered(($user = User::create($validated))));
+        event(new Registered(($user = User::query()->create($validated))));
 
         Auth::login($user);
 

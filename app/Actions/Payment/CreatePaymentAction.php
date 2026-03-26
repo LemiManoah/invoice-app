@@ -1,25 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Payment;
 
 use App\Actions\Audit\CreateAuditLogAction;
 use App\Actions\Invoice\RefreshInvoiceStatusAction;
 use App\Models\Invoice;
 use App\Models\Payment;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-class CreatePaymentAction
+final readonly class CreatePaymentAction
 {
     public function __construct(
-        private readonly GenerateReceiptAction $generateReceipt,
-        private readonly RefreshInvoiceStatusAction $refreshInvoiceStatus,
-        private readonly CreateAuditLogAction $createAuditLog,
+        private GenerateReceiptAction $generateReceipt,
+        private RefreshInvoiceStatusAction $refreshInvoiceStatus,
+        private CreateAuditLogAction $createAuditLog,
     ) {
     }
 
-    public function __invoke(array $data, Invoice $invoice): Payment
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function handle(array $data, Invoice $invoice): Payment
     {
         if (! $invoice->canAcceptPayments()) {
             throw ValidationException::withMessages([
@@ -33,7 +38,7 @@ class CreatePaymentAction
             ]);
         }
 
-        return DB::transaction(function () use ($data, $invoice) {
+        return DB::transaction(function () use ($data, $invoice): Payment {
             $payment = $invoice->payments()->create([
                 ...$data,
                 'received_by' => Auth::id(),
@@ -41,14 +46,13 @@ class CreatePaymentAction
             ]);
 
             $payment->load('invoice');
-            ($this->generateReceipt)($payment);
-            ($this->refreshInvoiceStatus)($invoice);
-
-            ($this->createAuditLog)(
+            $this->generateReceipt->handle($payment);
+            $this->refreshInvoiceStatus->handle($invoice);
+            $this->createAuditLog->handle(
                 'payment.recorded',
                 $payment,
                 null,
-                $payment->fresh()->load('receipt')->toArray()
+                $payment->fresh()->load('receipt')->toArray(),
             );
 
             return $payment->fresh(['receipt', 'invoice']);

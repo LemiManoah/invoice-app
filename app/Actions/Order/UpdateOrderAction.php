@@ -1,12 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Order;
 
 use App\Models\Order;
 
-class UpdateOrderAction
+final readonly class UpdateOrderAction
 {
-    public function __invoke(Order $order, array $data): Order
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function handle(Order $order, array $data): Order
     {
         $order->update($data);
 

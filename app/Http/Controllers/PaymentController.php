@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Actions\Payment\CreatePaymentAction;
@@ -9,19 +11,27 @@ use App\Http\Requests\VoidPaymentRequest;
 use App\Models\Invoice;
 use App\Models\Payment;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\View\View;
 
-class PaymentController extends Controller
+final readonly class PaymentController extends Controller implements HasMiddleware
 {
-    public function __construct(
-        private readonly CreatePaymentAction $createPayment,
-        private readonly VoidPaymentAction $voidPayment,
-    ) {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:payments.view', only: ['index', 'show']),
+            new Middleware('permission:payments.create', only: ['store']),
+            new Middleware('permission:payments.void', only: ['void']),
+        ];
     }
 
     public function index(): View
     {
-        $payments = Payment::with(['invoice.customer', 'receipt', 'receiver', 'voider'])
+        $this->authorize('viewAny', Payment::class);
+
+        $payments = Payment::query()
+            ->with(['invoice.customer', 'receipt', 'receiver', 'voider'])
             ->latest('payment_date')
             ->paginate(15);
 
@@ -30,22 +40,27 @@ class PaymentController extends Controller
 
     public function show(Payment $payment): View
     {
+        $this->authorize('view', $payment);
+
         $payment->load(['invoice.customer', 'receipt', 'receiver', 'voider']);
 
         return view('payments.show', compact('payment'));
     }
 
-    public function store(StorePaymentRequest $request, Invoice $invoice): RedirectResponse
+    public function store(StorePaymentRequest $request, Invoice $invoice, CreatePaymentAction $action): RedirectResponse
     {
-        ($this->createPayment)($request->validated(), $invoice);
+        $this->authorize('create', [Payment::class, $invoice]);
 
-        return redirect()->route('invoices.show', $invoice)
-            ->with('success', 'Payment recorded successfully.');
+        $action->handle($request->validated(), $invoice);
+
+        return to_route('invoices.show', $invoice)->with('success', 'Payment recorded successfully.');
     }
 
-    public function void(VoidPaymentRequest $request, Payment $payment): RedirectResponse
+    public function void(VoidPaymentRequest $request, Payment $payment, VoidPaymentAction $action): RedirectResponse
     {
-        ($this->voidPayment)($payment, $request->validated('void_reason'));
+        $this->authorize('void', $payment);
+
+        $action->handle($payment, $request->validated('void_reason'));
 
         return back()->with('success', 'Payment voided successfully.');
     }

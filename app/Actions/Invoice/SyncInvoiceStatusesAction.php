@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Invoice;
 
 use App\Models\Invoice;
 use Illuminate\Support\Facades\DB;
 
-class SyncInvoiceStatusesAction
+final readonly class SyncInvoiceStatusesAction
 {
-    public function __invoke(): void
+    public function handle(): void
     {
         Invoice::query()
             ->whereIn('status', ['issued', 'partially_paid', 'overdue'])
@@ -18,7 +20,7 @@ class SyncInvoiceStatusesAction
 
         Invoice::query()
             ->where('status', 'overdue')
-            ->where(function ($query) {
+            ->where(function ($query): void {
                 $query->whereNull('due_date')
                     ->orWhereDate('due_date', '>=', now()->toDateString());
             })

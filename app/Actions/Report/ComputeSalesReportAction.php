@@ -1,32 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Report;
 
 use App\Models\Invoice;
 use Carbon\Carbon;
 
-class ComputeSalesReportAction
+final readonly class ComputeSalesReportAction
 {
-    public function __invoke(?string $startDate, ?string $endDate): array
+    /**
+     * @return array<string, mixed>
+     */
+    public function handle(?string $startDate, ?string $endDate): array
     {
         $start = $startDate ? Carbon::parse($startDate) : Carbon::now()->startOfMonth();
         $end = $endDate ? Carbon::parse($endDate) : Carbon::now()->endOfMonth();
 
-        $invoices = Invoice::with('customer')
+        $invoices = Invoice::query()
+            ->with('customer')
             ->whereNotIn('status', ['draft', 'cancelled'])
             ->whereBetween('invoice_date', [$start->toDateString(), $end->toDateString()])
             ->get();
 
-        $summary = [
-            'total_invoiced' => $invoices->sum('total_amount'),
-            'total_paid' => $invoices->sum('amount_paid'),
-            'total_balance' => $invoices->sum('balance_due'),
-            'invoice_count' => $invoices->count(),
-        ];
-
         return [
             'invoices' => $invoices,
-            'summary' => $summary,
+            'summary' => [
+                'total_invoiced' => $invoices->sum('total_amount'),
+                'total_paid' => $invoices->sum('amount_paid'),
+                'total_balance' => $invoices->sum('balance_due'),
+                'invoice_count' => $invoices->count(),
+            ],
             'start_date' => $start->toDateString(),
             'end_date' => $end->toDateString(),
         ];

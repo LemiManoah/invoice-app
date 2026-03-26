@@ -1,19 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Expense;
 
 use App\Actions\Audit\CreateAuditLogAction;
 use App\Models\Expense;
 use Illuminate\Validation\ValidationException;
 
-class UpdateExpenseAction
+final readonly class UpdateExpenseAction
 {
     public function __construct(
-        private readonly CreateAuditLogAction $createAuditLog,
+        private CreateAuditLogAction $createAuditLog,
     ) {
     }
 
-    public function __invoke(Expense $expense, array $data): Expense
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function handle(Expense $expense, array $data): Expense
     {
         if ($expense->isVoided()) {
             throw ValidationException::withMessages([
@@ -24,7 +29,7 @@ class UpdateExpenseAction
         $before = $expense->toArray();
         $expense->update($data);
 
-        ($this->createAuditLog)('expense.updated', $expense, $before, $expense->fresh()->toArray());
+        $this->createAuditLog->handle('expense.updated', $expense, $before, $expense->fresh()->toArray());
 
         return $expense;
     }

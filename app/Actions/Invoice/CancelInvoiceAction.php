@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Invoice;
 
 use App\Actions\Audit\CreateAuditLogAction;
@@ -7,14 +9,14 @@ use App\Models\Invoice;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
-class CancelInvoiceAction
+final readonly class CancelInvoiceAction
 {
     public function __construct(
-        private readonly CreateAuditLogAction $createAuditLog,
+        private CreateAuditLogAction $createAuditLog,
     ) {
     }
 
-    public function __invoke(Invoice $invoice, string $reason): Invoice
+    public function handle(Invoice $invoice, string $reason): Invoice
     {
         if (! $invoice->canBeCancelled()) {
             throw ValidationException::withMessages([
@@ -31,7 +33,7 @@ class CancelInvoiceAction
             'cancellation_reason' => $reason,
         ])->save();
 
-        ($this->createAuditLog)(
+        $this->createAuditLog->handle(
             'invoice.cancelled',
             $invoice,
             $before,

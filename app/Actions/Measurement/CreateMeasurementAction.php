@@ -1,19 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Measurement;
 
+use App\Models\Customer;
 use App\Models\Measurement;
 use Illuminate\Support\Facades\Auth;
 
-class CreateMeasurementAction
+final readonly class CreateMeasurementAction
 {
-    public function __invoke($customer, array $data): Measurement
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function handle(Customer $customer, array $data): Measurement
     {
-        if (! empty($data['is_current']) && $data['is_current']) {
+        if (! empty($data['is_current'])) {
             $customer->measurements()->update(['is_current' => false]);
         }
-        $data['measured_by'] = Auth::id();
 
-        return $customer->measurements()->create($data);
+        return $customer->measurements()->create([
+            ...$data,
+            'measured_by' => Auth::id(),
+        ]);
     }
 }
