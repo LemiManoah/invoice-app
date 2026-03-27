@@ -13,9 +13,9 @@
 
     @if($customer)
         <div class="cards">
-            <div class="card"><div class="label">Total Invoiced</div><div class="value">{{ number_format($summary['total_invoiced'], 2) }}</div></div>
-            <div class="card"><div class="label">Total Paid</div><div class="value">{{ number_format($summary['total_paid'], 2) }}</div></div>
-            <div class="card"><div class="label">Current Balance</div><div class="value">{{ number_format($summary['balance_due'], 2) }}</div></div>
+            <div class="card"><div class="label">Total Invoiced</div><div class="value">{{ $currencyFormatter->formatValue($summary['total_invoiced'], 2) }}</div></div>
+            <div class="card"><div class="label">Total Paid</div><div class="value">{{ $currencyFormatter->formatValue($summary['total_paid'], 2) }}</div></div>
+            <div class="card"><div class="label">Current Balance</div><div class="value">{{ $currencyFormatter->formatValue($summary['balance_due'], 2) }}</div></div>
         </div>
 
         <div class="section">
@@ -34,8 +34,8 @@
                         <tr>
                             <td>{{ $invoice->invoice_number }}</td>
                             <td>{{ $invoice->invoice_date->format('M d, Y') }}</td>
-                            <td class="text-right">{{ number_format($invoice->total_amount, 2) }}</td>
-                            <td class="text-right">{{ number_format($invoice->balance_due, 2) }}</td>
+                            <td class="text-right">{{ $currencyFormatter->formatValue($invoice->total_amount, 2) }}</td>
+                            <td class="text-right">{{ $currencyFormatter->formatValue($invoice->balance_due, 2) }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -63,7 +63,7 @@
                             <td>{{ $payment->payment_date->format('M d, Y') }}</td>
                             <td>{{ $payment->invoice->invoice_number }}</td>
                             <td>{{ $payment->receipt?->receipt_number ?? '-' }}</td>
-                            <td class="text-right">{{ number_format($payment->amount, 2) }}</td>
+                            <td class="text-right">{{ $currencyFormatter->formatValue($payment->amount, 2) }}</td>
                         </tr>
                     @empty
                         <tr>

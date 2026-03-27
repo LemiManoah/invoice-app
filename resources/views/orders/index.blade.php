@@ -55,6 +55,21 @@
                                             View
                                         </a>
                                     @endcan
+                                    @if($order->invoice)
+                                        @can('view', $order->invoice)
+                                            <a href="{{ route('invoices.show', $order->invoice) }}"
+                                                class="inline-flex items-center rounded-md border border-indigo-200 px-2.5 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-300 dark:hover:bg-indigo-900/30">
+                                                Invoice
+                                            </a>
+                                        @endcan
+                                    @else
+                                        @can('create', \App\Models\Invoice::class)
+                                            <a href="{{ route('invoices.create', ['customer_id' => $order->customer_id, 'order_id' => $order->id]) }}"
+                                                class="inline-flex items-center rounded-md border border-indigo-200 px-2.5 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-300 dark:hover:bg-indigo-900/30">
+                                                Generate Invoice
+                                            </a>
+                                        @endcan
+                                    @endif
                                     @can('update', $order)
                                         <a href="{{ route('orders.edit', $order) }}"
                                             class="inline-flex items-center rounded-md border border-amber-200 px-2.5 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-900/30">

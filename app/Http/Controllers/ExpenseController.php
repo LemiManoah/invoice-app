@@ -12,6 +12,7 @@ use App\Http\Requests\UpdateExpenseRequest;
 use App\Http\Requests\VoidExpenseRequest;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
+use App\Models\PaymentMethod;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -63,8 +64,9 @@ final readonly class ExpenseController extends Controller implements HasMiddlewa
         $this->authorize('create', Expense::class);
 
         $categories = ExpenseCategory::query()->where('is_active', true)->get();
+        $paymentMethods = PaymentMethod::query()->active()->ordered()->get();
 
-        return view('expenses.create', compact('categories'));
+        return view('expenses.create', compact('categories', 'paymentMethods'));
     }
 
     public function store(StoreExpenseRequest $request, CreateExpenseAction $action): RedirectResponse
@@ -94,8 +96,9 @@ final readonly class ExpenseController extends Controller implements HasMiddlewa
         }
 
         $categories = ExpenseCategory::query()->where('is_active', true)->get();
+        $paymentMethods = PaymentMethod::query()->ordered()->get();
 
-        return view('expenses.edit', compact('expense', 'categories'));
+        return view('expenses.edit', compact('expense', 'categories', 'paymentMethods'));
     }
 
     public function update(UpdateExpenseRequest $request, Expense $expense, UpdateExpenseAction $action): RedirectResponse

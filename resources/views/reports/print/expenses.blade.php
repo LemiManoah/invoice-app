@@ -11,7 +11,7 @@
     </div>
 
     <div class="cards">
-        <div class="card"><div class="label">Total Expenses</div><div class="value">{{ number_format($expenses->sum('amount'), 2) }}</div></div>
+        <div class="card"><div class="label">Total Expenses</div><div class="value">{{ $currencyFormatter->formatValue($expenses->sum('amount'), 2) }}</div></div>
         <div class="card"><div class="label">Categories</div><div class="value">{{ count($by_category) }}</div></div>
     </div>
 
@@ -28,7 +28,7 @@
                 @foreach($by_category as $category)
                     <tr>
                         <td>{{ $category['name'] }}</td>
-                        <td class="text-right">{{ number_format($category['total'], 2) }}</td>
+                        <td class="text-right">{{ $currencyFormatter->formatValue($category['total'], 2) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -52,7 +52,7 @@
                         <td>{{ $expense->expense_date->format('M d, Y') }}</td>
                         <td>{{ $expense->description }}</td>
                         <td>{{ $expense->category->name }}</td>
-                        <td class="text-right">{{ number_format($expense->amount, 2) }}</td>
+                        <td class="text-right">{{ $currencyFormatter->formatValue($expense->amount, 2) }}</td>
                     </tr>
                 @empty
                     <tr>

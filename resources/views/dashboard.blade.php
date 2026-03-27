@@ -26,7 +26,7 @@
         <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Expenses Today</p>
             <div class="flex items-center justify-between">
-                <span class="text-xl font-bold text-red-600">{{ number_format($stats['expenses_today'], 2) }}</span>
+                <span class="text-xl font-bold text-red-600">{{ $currencyFormatter->formatValue($stats['expenses_today'], 2) }}</span>
                 <div class="p-2 bg-red-50 dark:bg-red-900/20 rounded text-red-600">
                     <i class="fas fa-money-bill-wave text-sm"></i>
                 </div>
@@ -37,7 +37,7 @@
         <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Collected Today</p>
             <div class="flex items-center justify-between">
-                <span class="text-xl font-bold text-green-600">{{ number_format($stats['collected_today'], 2) }}</span>
+                <span class="text-xl font-bold text-green-600">{{ $currencyFormatter->formatValue($stats['collected_today'], 2) }}</span>
                 <div class="p-2 bg-green-50 dark:bg-green-900/20 rounded text-green-600">
                     <i class="fas fa-cash-register text-sm"></i>
                 </div>
@@ -48,7 +48,7 @@
         <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Unpaid Balances</p>
             <div class="flex items-center justify-between">
-                <span class="text-xl font-bold text-red-600">{{ number_format($stats['unpaid_balances'], 2) }}</span>
+                <span class="text-xl font-bold text-red-600">{{ $currencyFormatter->formatValue($stats['unpaid_balances'], 2) }}</span>
                 <div class="p-2 bg-red-50 dark:bg-red-900/20 rounded text-red-600">
                     <i class="fas fa-hand-holding-usd text-sm"></i>
                 </div>
@@ -124,7 +124,7 @@
                             <p class="text-xs text-gray-500 dark:text-gray-400">{{ $payment->invoice->invoice_number }} • {{ $payment->payment_method }}</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-sm font-bold text-green-600 font-mono">+{{ number_format($payment->amount, 2) }}</p>
+                            <p class="text-sm font-bold text-green-600 font-mono">+{{ $currencyFormatter->formatValue($payment->amount, 2) }}</p>
                             <p class="text-[10px] text-gray-400">{{ $payment->payment_date->format('M d, Y') }}</p>
                         </div>
                     </div>

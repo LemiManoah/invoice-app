@@ -11,7 +11,7 @@
     </div>
 
     <div class="cards">
-        <div class="card"><div class="label">Total Collected</div><div class="value">{{ number_format($summary['total_collected'], 2) }}</div></div>
+        <div class="card"><div class="label">Total Collected</div><div class="value">{{ $currencyFormatter->formatValue($summary['total_collected'], 2) }}</div></div>
         <div class="card"><div class="label">Payments Count</div><div class="value">{{ $summary['payments_count'] }}</div></div>
     </div>
 
@@ -32,7 +32,7 @@
                     <td>{{ $payment->invoice->customer->full_name }}</td>
                     <td>{{ $payment->invoice->invoice_number }}</td>
                     <td>{{ $payment->receipt?->receipt_number ?? '-' }}</td>
-                    <td class="text-right">{{ number_format($payment->amount, 2) }}</td>
+                    <td class="text-right">{{ $currencyFormatter->formatValue($payment->amount, 2) }}</td>
                 </tr>
             @empty
                 <tr>

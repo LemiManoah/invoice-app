@@ -1,3 +1,7 @@
+@php
+    $currencyStep = $activeCurrency->decimal_places > 0 ? '0.01' : '1';
+@endphp
+
 <x-layouts.app title="Invoice {{ $invoice->invoice_number }}">
     <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -36,9 +40,21 @@
             @endcan
 
             @can('create', [\App\Models\Payment::class, $invoice])
-                <button type="button" @click="$dispatch('open-modal', 'record-payment')" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
-                    <i class="fas fa-money-bill-wave mr-2"></i> Record Payment
-                </button>
+                @if($paymentMethods->isNotEmpty())
+                    <button type="button" @click="$dispatch('open-modal', 'record-payment')" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
+                        <i class="fas fa-money-bill-wave mr-2"></i> Record Payment
+                    </button>
+                @else
+                    @can('create', \App\Models\PaymentMethod::class)
+                        <a href="{{ route('payment-methods.create') }}" class="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition">
+                            Add Payment Method First
+                        </a>
+                    @else
+                        <span class="inline-flex items-center px-4 py-2 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 text-sm">
+                            No active payment methods configured
+                        </span>
+                    @endcan
+                @endif
             @endcan
 
             @can('print', $invoice)
@@ -99,10 +115,10 @@
                                         {{ $item->quantity }}
                                     </td>
                                     <td class="px-6 py-4 text-right text-sm text-gray-500 dark:text-gray-400 font-mono">
-                                        {{ number_format($item->unit_price, 2) }}
+                                        {{ $currencyFormatter->formatValue($item->unit_price, 2) }}
                                     </td>
                                     <td class="px-6 py-4 text-right text-sm text-gray-900 dark:text-white font-semibold font-mono">
-                                        {{ number_format($item->line_total, 2) }}
+                                        {{ $currencyFormatter->formatValue($item->line_total, 2) }}
                                     </td>
                                 </tr>
                             @endforeach
@@ -110,23 +126,23 @@
                         <tfoot class="bg-gray-50 dark:bg-gray-900/50">
                             <tr>
                                 <td colspan="3" class="px-6 py-2 text-right text-sm font-medium text-gray-500 dark:text-gray-400 uppercase">Subtotal</td>
-                                <td class="px-6 py-2 text-right text-sm font-bold text-gray-900 dark:text-white font-mono">{{ number_format($invoice->subtotal_amount, 2) }}</td>
+                                <td class="px-6 py-2 text-right text-sm font-bold text-gray-900 dark:text-white font-mono">{{ $currencyFormatter->formatValue($invoice->subtotal_amount, 2) }}</td>
                             </tr>
                             @if($invoice->discount_amount > 0)
                                 <tr>
                                     <td colspan="3" class="px-6 py-2 text-right text-sm font-medium text-gray-500 dark:text-gray-400 uppercase">Discount</td>
-                                    <td class="px-6 py-2 text-right text-sm font-bold text-red-600 font-mono">-{{ number_format($invoice->discount_amount, 2) }}</td>
+                                    <td class="px-6 py-2 text-right text-sm font-bold text-red-600 font-mono">-{{ $currencyFormatter->formatValue($invoice->discount_amount, 2) }}</td>
                                 </tr>
                             @endif
                             @if($invoice->tax_amount > 0)
                                 <tr>
                                     <td colspan="3" class="px-6 py-2 text-right text-sm font-medium text-gray-500 dark:text-gray-400 uppercase">Tax</td>
-                                    <td class="px-6 py-2 text-right text-sm font-bold text-gray-900 dark:text-white font-mono">{{ number_format($invoice->tax_amount, 2) }}</td>
+                                    <td class="px-6 py-2 text-right text-sm font-bold text-gray-900 dark:text-white font-mono">{{ $currencyFormatter->formatValue($invoice->tax_amount, 2) }}</td>
                                 </tr>
                             @endif
                             <tr class="bg-gray-100 dark:bg-gray-700">
                                 <td colspan="3" class="px-6 py-3 text-right text-base font-bold text-gray-900 dark:text-white uppercase">Grand Total</td>
-                                <td class="px-6 py-3 text-right text-base font-bold text-gray-900 dark:text-white font-mono">{{ number_format($invoice->total_amount, 2) }}</td>
+                                <td class="px-6 py-3 text-right text-base font-bold text-gray-900 dark:text-white font-mono">{{ $currencyFormatter->formatValue($invoice->total_amount, 2) }}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -148,15 +164,15 @@
                 <div class="space-y-4">
                     <div class="flex justify-between items-center">
                         <span class="text-gray-500 dark:text-gray-400">Total Invoiced</span>
-                        <span class="font-bold text-gray-900 dark:text-white font-mono">{{ number_format($invoice->total_amount, 2) }}</span>
+                        <span class="font-bold text-gray-900 dark:text-white font-mono">{{ $currencyFormatter->formatValue($invoice->total_amount, 2) }}</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-gray-500 dark:text-gray-400">Total Paid</span>
-                        <span class="font-bold text-green-600 font-mono">{{ number_format($invoice->amount_paid, 2) }}</span>
+                        <span class="font-bold text-green-600 font-mono">{{ $currencyFormatter->formatValue($invoice->amount_paid, 2) }}</span>
                     </div>
                     <div class="pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
                         <span class="text-lg font-bold text-gray-900 dark:text-white">Balance Due</span>
-                        <span class="text-xl font-black text-red-600 font-mono">{{ number_format($invoice->balance_due, 2) }}</span>
+                        <span class="text-xl font-black text-red-600 font-mono">{{ $currencyFormatter->formatValue($invoice->balance_due, 2) }}</span>
                     </div>
                 </div>
             </div>
@@ -178,7 +194,7 @@
                                 @endif
                             </div>
                             <div class="text-right">
-                                <p class="text-sm font-bold {{ $payment->status === 'valid' ? 'text-green-600' : 'text-red-600' }} font-mono">{{ number_format($payment->amount, 2) }}</p>
+                                <p class="text-sm font-bold {{ $payment->status === 'valid' ? 'text-green-600' : 'text-red-600' }} font-mono">{{ $currencyFormatter->formatValue($payment->amount, 2) }}</p>
                                 @if($payment->status === 'voided')
                                     <p class="text-[10px] bg-red-100 text-red-600 px-1 rounded inline-block">VOIDED</p>
                                 @else
@@ -200,6 +216,7 @@
 
     <!-- Record Payment Modal -->
     @can('create', [\App\Models\Payment::class, $invoice])
+        @if($paymentMethods->isNotEmpty())
         <x-modal name="record-payment" maxWidth="lg">
             <form action="{{ route('payments.store', $invoice) }}" method="POST" class="p-6">
                 @csrf
@@ -207,54 +224,83 @@
                     Record Payment for {{ $invoice->invoice_number }}
                 </h2>
 
-            <div class="space-y-4">
-                <div>
+                @if($errors->hasAny(['amount', 'payment_date', 'payment_method_id', 'reference_number', 'notes']))
+                    <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300">
+                        Please correct the payment form errors below and try again.
+                    </div>
+                @endif
+
+                <div class="space-y-4">
+                    <div>
                     <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount</label>
-                    <input type="number" name="amount" id="amount" step="0.01" min="0.01" max="{{ $invoice->balance_due }}" value="{{ $invoice->balance_due }}" required
+                    <input type="number" name="amount" id="amount" step="{{ $currencyStep }}" min="{{ $currencyStep }}" max="{{ $invoice->balance_due }}" value="{{ old('amount', $invoice->balance_due) }}" required
                         class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                    @error('amount')
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
                     <label for="payment_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Date</label>
-                    <input type="date" name="payment_date" id="payment_date" value="{{ date('Y-m-d') }}" required
+                    <input type="date" name="payment_date" id="payment_date" value="{{ old('payment_date', now()->format('Y-m-d')) }}" required
                         class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                    @error('payment_date')
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
-                    <label for="payment_method" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</label>
-                    <select name="payment_method" id="payment_method" required
+                    <label for="payment_method_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</label>
+                    <select name="payment_method_id" id="payment_method_id" required
                         class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                        <option value="Cash">Cash</option>
-                        <option value="Bank Transfer">Bank Transfer</option>
-                        <option value="Mobile Money">Mobile Money</option>
-                        <option value="Card">Card</option>
-                        <option value="Other">Other</option>
+                        <option value="">Select Payment Method</option>
+                        @foreach($paymentMethods as $paymentMethod)
+                            <option value="{{ $paymentMethod->id }}" @selected((string) old('payment_method_id') === (string) $paymentMethod->id)>{{ $paymentMethod->name }}</option>
+                        @endforeach
                     </select>
+                    @error('payment_method_id')
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
                     <label for="reference_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reference Number</label>
-                    <input type="text" name="reference_number" id="reference_number"
+                    <input type="text" name="reference_number" id="reference_number" value="{{ old('reference_number') }}"
                         class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                    @error('reference_number')
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
                     <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
                     <textarea name="notes" id="notes" rows="2"
-                        class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"></textarea>
+                        class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ old('notes') }}</textarea>
+                    @error('notes')
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
-            </div>
+                </div>
 
-            <div class="mt-6 flex justify-end space-x-3">
-                <button type="button" x-on:click="$dispatch('close-modal', 'record-payment')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition">
-                    Cancel
-                </button>
-                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
-                    Record Payment
-                </button>
-            </div>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" x-on:click="$dispatch('close-modal', 'record-payment')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
+                        Record Payment
+                    </button>
+                </div>
             </form>
         </x-modal>
+
+        @if($errors->hasAny(['amount', 'payment_date', 'payment_method_id', 'reference_number', 'notes']))
+            <script>
+                window.addEventListener('load', () => {
+                    window.dispatchEvent(new CustomEvent('open-modal', { detail: 'record-payment' }));
+                });
+            </script>
+        @endif
+        @endif
     @endcan
 
     @foreach($invoice->payments->where('status', 'valid') as $payment)

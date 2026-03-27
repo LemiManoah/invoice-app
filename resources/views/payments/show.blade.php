@@ -33,7 +33,7 @@
             </div>
             <div>
                 <p class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Amount</p>
-                <p class="text-2xl font-bold {{ $payment->status === 'valid' ? 'text-green-600' : 'text-red-600' }}">{{ number_format($payment->amount, 2) }}</p>
+                <p class="text-2xl font-bold {{ $payment->status === 'valid' ? 'text-green-600' : 'text-red-600' }}">{{ $currencyFormatter->formatValue($payment->amount, 2) }}</p>
             </div>
             <div>
                 <p class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</p>

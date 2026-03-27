@@ -16,6 +16,6 @@
     <p><strong>Invoice:</strong> {{ $receipt->payment->invoice->invoice_number }}</p>
     <p><strong>Payment Method:</strong> {{ $receipt->payment->payment_method }}</p>
     <p><strong>Reference:</strong> {{ $receipt->payment->reference_number ?: 'N/A' }}</p>
-    <p><strong>Amount Received:</strong> {{ number_format($receipt->payment->amount, 2) }}</p>
+    <p><strong>Amount Received:</strong> {{ $currencyFormatter->formatValue($receipt->payment->amount, 2) }}</p>
 </body>
 </html>

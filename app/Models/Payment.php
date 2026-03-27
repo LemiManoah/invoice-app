@@ -12,6 +12,7 @@ class Payment extends Model
         'invoice_id',
         'payment_date',
         'amount',
+        'payment_method_id',
         'payment_method',
         'reference_number',
         'notes',
@@ -46,6 +47,11 @@ class Payment extends Model
     public function receipt(): HasOne
     {
         return $this->hasOne(Receipt::class);
+    }
+
+    public function paymentMethodDefinition(): BelongsTo
+    {
+        return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
     }
 
     public function isVoided(): bool

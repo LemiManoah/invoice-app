@@ -30,15 +30,15 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Total Invoiced</p>
-            <p class="text-xl font-bold text-gray-900 dark:text-white">{{ number_format($summary['total_invoiced'], 2) }}</p>
+            <p class="text-xl font-bold text-gray-900 dark:text-white">{{ $currencyFormatter->formatValue($summary['total_invoiced'], 2) }}</p>
         </div>
         <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Total Paid</p>
-            <p class="text-xl font-bold text-green-600">{{ number_format($summary['total_paid'], 2) }}</p>
+            <p class="text-xl font-bold text-green-600">{{ $currencyFormatter->formatValue($summary['total_paid'], 2) }}</p>
         </div>
         <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Balance Due</p>
-            <p class="text-xl font-bold text-red-600">{{ number_format($summary['total_balance'], 2) }}</p>
+            <p class="text-xl font-bold text-red-600">{{ $currencyFormatter->formatValue($summary['total_balance'], 2) }}</p>
         </div>
         <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Invoice Count</p>
@@ -72,13 +72,13 @@
                                 {{ $invoice->customer->full_name }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white font-mono">
-                                {{ number_format($invoice->total_amount, 2) }}
+                                {{ $currencyFormatter->formatValue($invoice->total_amount, 2) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-green-600 font-mono">
-                                {{ number_format($invoice->amount_paid, 2) }}
+                                {{ $currencyFormatter->formatValue($invoice->amount_paid, 2) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600 font-mono">
-                                {{ number_format($invoice->balance_due, 2) }}
+                                {{ $currencyFormatter->formatValue($invoice->balance_due, 2) }}
                             </td>
                         </tr>
                     @empty

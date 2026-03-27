@@ -41,7 +41,7 @@
                         <h3 class="text-lg font-bold text-gray-900 dark:text-white">Total Revenue</h3>
                         <p class="text-sm text-gray-500">Payments collected in this period</p>
                     </div>
-                    <span class="text-2xl font-bold text-green-600 font-mono">+{{ number_format($revenue, 2) }}</span>
+                    <span class="text-2xl font-bold text-green-600 font-mono">+{{ $currencyFormatter->formatValue($revenue, 2) }}</span>
                 </div>
 
                 <!-- Expenses -->
@@ -50,7 +50,7 @@
                         <h3 class="text-lg font-bold text-gray-900 dark:text-white">Total Expenses</h3>
                         <p class="text-sm text-gray-500">Business spending in this period</p>
                     </div>
-                    <span class="text-2xl font-bold text-red-600 font-mono">-{{ number_format($total_expenses, 2) }}</span>
+                    <span class="text-2xl font-bold text-red-600 font-mono">-{{ $currencyFormatter->formatValue($total_expenses, 2) }}</span>
                 </div>
 
                 <!-- Net Position -->
@@ -64,7 +64,7 @@
                         'text-green-600' => ($revenue - $total_expenses) >= 0,
                         'text-red-600' => ($revenue - $total_expenses) < 0,
                     ])>
-                        {{ number_format($revenue - $total_expenses, 2) }}
+                        {{ $currencyFormatter->formatValue($revenue - $total_expenses, 2) }}
                     </span>
                 </div>
             </div>

@@ -35,7 +35,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <p class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-bold">Amount</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($expense->amount, 2) }}</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $currencyFormatter->formatValue($expense->amount, 2) }}</p>
                         </div>
                         <div>
                             <p class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-bold">Payment Method</p>
@@ -63,9 +63,9 @@
             @if($expense->status === 'voided')
                 <div class="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg p-6">
                     <h3 class="text-sm font-bold text-red-600 dark:text-red-400 uppercase tracking-wider mb-2">Void Information:</h3>
-                    <p class="text-sm text-red-700 dark:text-red-300">Voided on: {{ $expense->voided_at->format('M d, Y H:i') }}</p>
+                    <p class="text-sm text-red-700 dark:text-red-300">Voided on: {{ $expense->voided_at?->format('M d, Y H:i') ?? 'N/A' }}</p>
                     <p class="text-sm text-red-700 dark:text-red-300">Voided by: {{ $expense->voider->name ?? 'System' }}</p>
-                    <p class="text-sm text-red-700 dark:text-red-300 mt-2 italic">Reason: {{ $expense->void_reason }}</p>
+                    <p class="text-sm text-red-700 dark:text-red-300 mt-2 italic">Reason: {{ $expense->void_reason ?? 'No reason recorded.' }}</p>
                 </div>
             @endif
         </div>
@@ -92,7 +92,7 @@
                         <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Recorded By</p>
                         <p class="text-xs text-gray-600 dark:text-gray-400">{{ $expense->creator->name ?? 'System' }}</p>
                         <p class="text-[10px] text-gray-400 mt-1 uppercase font-bold mb-1">Created At</p>
-                        <p class="text-xs text-gray-600 dark:text-gray-400">{{ $expense->created_at->format('M d, Y H:i') }}</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400">{{ $expense->created_at?->format('M d, Y H:i') ?? 'N/A' }}</p>
                     </div>
                 </div>
             </div>

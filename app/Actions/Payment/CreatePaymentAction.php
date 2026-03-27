@@ -8,6 +8,7 @@ use App\Actions\Audit\CreateAuditLogAction;
 use App\Actions\Invoice\RefreshInvoiceStatusAction;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\PaymentMethod;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -39,8 +40,13 @@ final readonly class CreatePaymentAction
         }
 
         return DB::transaction(function () use ($data, $invoice): Payment {
+            $paymentMethod = PaymentMethod::query()
+                ->active()
+                ->findOrFail($data['payment_method_id']);
+
             $payment = $invoice->payments()->create([
                 ...$data,
+                'payment_method' => $paymentMethod->name,
                 'received_by' => Auth::id(),
                 'status' => 'valid',
             ]);

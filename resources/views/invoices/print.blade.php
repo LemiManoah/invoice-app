@@ -250,10 +250,10 @@
                     </td>
                     <td class="text-center">{{ $item->quantity }}</td>
                     <td class="text-right">
-                        {{ number_format($item->unit_price, 2) }}
+                        {{ $currencyFormatter->formatValue($item->unit_price, 2) }}
                     </td>
                     <td class="text-right pr-0">
-                        {{ number_format($item->line_total, 2) }}
+                        {{ $currencyFormatter->formatValue($item->line_total, 2) }}
                     </td>
                 </tr>
                 @endforeach
@@ -262,7 +262,7 @@
                     <td colspan="2" class="border-0"></td>
                     <td class="text-right pl-0">Subtotal</td>
                     <td class="text-right pr-0">
-                        {{ number_format($invoice->subtotal_amount, 2) }}
+                        {{ $currencyFormatter->formatValue($invoice->subtotal_amount, 2) }}
                     </td>
                 </tr>
                 
@@ -271,7 +271,7 @@
                         <td colspan="2" class="border-0"></td>
                         <td class="text-right pl-0">Discount</td>
                         <td class="text-right pr-0" style="color: red;">
-                            -{{ number_format($invoice->discount_amount, 2) }}
+                            -{{ $currencyFormatter->formatValue($invoice->discount_amount, 2) }}
                         </td>
                     </tr>
                 @endif
@@ -281,7 +281,7 @@
                         <td colspan="2" class="border-0"></td>
                         <td class="text-right pl-0">Tax</td>
                         <td class="text-right pr-0">
-                            {{ number_format($invoice->tax_amount, 2) }}
+                            {{ $currencyFormatter->formatValue($invoice->tax_amount, 2) }}
                         </td>
                     </tr>
                 @endif
@@ -290,7 +290,7 @@
                     <td colspan="2" class="border-0"></td>
                     <td class="text-right pl-0"><strong>Invoice Total</strong></td>
                     <td class="text-right pr-0 total-amount">
-                        {{ number_format($invoice->total_amount, 2) }}
+                        {{ $currencyFormatter->formatValue($invoice->total_amount, 2) }}
                     </td>
                 </tr>
 
@@ -299,7 +299,7 @@
                         <td colspan="2" class="border-0"></td>
                         <td class="text-right pl-0">Amount Paid</td>
                         <td class="text-right pr-0" style="color: green;">
-                            {{ number_format($invoice->amount_paid, 2) }}
+                            {{ $currencyFormatter->formatValue($invoice->amount_paid, 2) }}
                         </td>
                     </tr>
                 @endif
@@ -308,7 +308,7 @@
                     <td colspan="2" class="border-0"></td>
                     <td class="text-right pl-0"><strong>Balance Due</strong></td>
                     <td class="text-right pr-0 total-amount" style="color: #dc2626;">
-                        {{ number_format($invoice->balance_due, 2) }}
+                        {{ $currencyFormatter->formatValue($invoice->balance_due, 2) }}
                     </td>
                 </tr>
             </tbody>

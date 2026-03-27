@@ -12,8 +12,8 @@
 
     <div class="cards">
         <div class="card"><div class="label">Customers With Balances</div><div class="value">{{ $summary['customers_with_balances'] }}</div></div>
-        <div class="card"><div class="label">Total Outstanding</div><div class="value">{{ number_format($summary['total_outstanding'], 2) }}</div></div>
-        <div class="card"><div class="label">Overdue Total</div><div class="value">{{ number_format($summary['overdue_total'], 2) }}</div></div>
+        <div class="card"><div class="label">Total Outstanding</div><div class="value">{{ $currencyFormatter->formatValue($summary['total_outstanding'], 2) }}</div></div>
+        <div class="card"><div class="label">Overdue Total</div><div class="value">{{ $currencyFormatter->formatValue($summary['overdue_total'], 2) }}</div></div>
     </div>
 
     <table>
@@ -33,7 +33,7 @@
                     <td>{{ $invoice->customer->full_name }}</td>
                     <td>{{ $invoice->due_date?->format('M d, Y') ?? 'No due date' }}</td>
                     <td>{{ ucfirst(str_replace('_', ' ', $invoice->status)) }}</td>
-                    <td class="text-right">{{ number_format($invoice->balance_due, 2) }}</td>
+                    <td class="text-right">{{ $currencyFormatter->formatValue($invoice->balance_due, 2) }}</td>
                 </tr>
             @empty
                 <tr>

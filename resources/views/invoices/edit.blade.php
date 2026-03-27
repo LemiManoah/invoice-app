@@ -1,3 +1,7 @@
+@php
+    $currencyStep = $activeCurrency->decimal_places > 0 ? '0.01' : '1';
+@endphp
+
 <x-layouts.app title="Edit Invoice">
     <div x-data="editInvoiceForm({{ \Illuminate\Support\Js::from([
         'items' => $invoice->items->map(static fn ($item): array => [
@@ -10,6 +14,7 @@
         'discount' => (float) $invoice->discount_amount,
         'tax' => (float) $invoice->tax_amount,
         'total' => (float) $invoice->total_amount,
+        'currency' => $activeCurrencyConfig,
     ]) }})">
         <div class="mb-6">
             <a href="{{ route('invoices.show', $invoice) }}" class="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 mb-2 inline-block">
@@ -43,7 +48,7 @@
                                             <td class="px-4 py-2"><input type="text" :name="'items['+index+'][item_name]'" x-model="item.item_name" required class="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm"></td>
                                             <td class="px-4 py-2"><input type="text" :name="'items['+index+'][description]'" x-model="item.description" class="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm"></td>
                                             <td class="px-4 py-2"><input type="number" :name="'items['+index+'][quantity]'" x-model.number="item.quantity" @input="calculateTotals()" required min="1" class="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm text-center"></td>
-                                            <td class="px-4 py-2"><input type="number" :name="'items['+index+'][unit_price]'" x-model.number="item.unit_price" @input="calculateTotals()" required step="0.01" min="0" class="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm text-right"></td>
+                                            <td class="px-4 py-2"><input type="number" :name="'items['+index+'][unit_price]'" x-model.number="item.unit_price" @input="calculateTotals()" required step="{{ $currencyStep }}" min="0" class="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm text-right"></td>
                                             <td class="px-4 py-2 text-right text-sm text-gray-900 dark:text-white font-medium"><span x-text="formatCurrency(item.quantity * item.unit_price)"></span></td>
                                             <td class="px-4 py-2 text-right"><button type="button" @click="removeItem(index)" class="text-red-600 hover:text-red-900"><i class="fas fa-trash"></i></button></td>
                                         </tr>
@@ -100,11 +105,11 @@
                             <div class="flex justify-between text-gray-500"><span>Subtotal</span><span x-text="formatCurrency(subtotal)"></span></div>
                             <div class="flex justify-between items-center text-gray-500">
                                 <span>Discount</span>
-                                <input type="number" name="discount_amount" x-model.number="discount" @input="calculateTotals()" step="0.01" min="0" class="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white text-right">
+                                <input type="number" name="discount_amount" x-model.number="discount" @input="calculateTotals()" step="{{ $currencyStep }}" min="0" class="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white text-right">
                             </div>
                             <div class="flex justify-between items-center text-gray-500 border-b border-gray-100 dark:border-gray-700 pb-3">
                                 <span>Tax</span>
-                                <input type="number" name="tax_amount" x-model.number="tax" @input="calculateTotals()" step="0.01" min="0" class="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white text-right">
+                                <input type="number" name="tax_amount" x-model.number="tax" @input="calculateTotals()" step="{{ $currencyStep }}" min="0" class="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white text-right">
                             </div>
                             <div class="flex justify-between text-lg font-bold text-gray-900 dark:text-white pt-1"><span>Total</span><span x-text="formatCurrency(total)"></span></div>
                         </div>
@@ -123,6 +128,7 @@
                 discount: config.discount,
                 tax: config.tax,
                 total: config.total,
+                currency: config.currency,
 
                 addItem() {
                     this.items.push({
@@ -148,8 +154,8 @@
 
                 formatCurrency(amount) {
                     return new Intl.NumberFormat('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
+                        minimumFractionDigits: this.currency.decimal_places,
+                        maximumFractionDigits: this.currency.decimal_places,
                     }).format(amount);
                 },
             };

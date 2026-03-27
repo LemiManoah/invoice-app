@@ -38,12 +38,12 @@
                     @foreach($by_category as $category)
                         <div class="px-6 py-4 flex justify-between items-center">
                             <span class="text-sm text-gray-600 dark:text-gray-400">{{ $category['name'] }}</span>
-                            <span class="text-sm font-bold text-gray-900 dark:text-white font-mono">{{ number_format($category['total'], 2) }}</span>
+                            <span class="text-sm font-bold text-gray-900 dark:text-white font-mono">{{ $currencyFormatter->formatValue($category['total'], 2) }}</span>
                         </div>
                     @endforeach
                     <div class="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 flex justify-between items-center font-bold">
                         <span class="text-sm text-gray-900 dark:text-white uppercase">Total</span>
-                        <span class="text-lg text-red-600 font-mono">{{ number_format($expenses->sum('amount'), 2) }}</span>
+                        <span class="text-lg text-red-600 font-mono">{{ $currencyFormatter->formatValue($expenses->sum('amount'), 2) }}</span>
                     </div>
                 </div>
             </div>
@@ -75,7 +75,7 @@
                                         <p class="text-xs text-gray-500">{{ $expense->category->name }}</p>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600 font-mono font-bold">
-                                        {{ number_format($expense->amount, 2) }}
+                                        {{ $currencyFormatter->formatValue($expense->amount, 2) }}
                                     </td>
                                 </tr>
                             @empty

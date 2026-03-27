@@ -91,11 +91,11 @@
                 </div>
                 <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
                     <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Invoiced</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($customer->invoices->sum('total_amount'), 2) }}</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $currencyFormatter->formatValue($customer->invoices->sum('total_amount'), 2) }}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
                     <p class="text-xs font-bold text-red-500 uppercase tracking-wider">Outstanding Balance</p>
-                    <p class="text-2xl font-bold text-red-600">{{ number_format($customer->invoices->sum('balance_due'), 2) }}</p>
+                    <p class="text-2xl font-bold text-red-600">{{ $currencyFormatter->formatValue($customer->invoices->sum('balance_due'), 2) }}</p>
                 </div>
             </div>
 
@@ -187,7 +187,7 @@
                                             <a href="{{ route('invoices.show', $invoice) }}">{{ $invoice->invoice_number }}</a>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-semibold">
-                                            {{ number_format($invoice->total_amount, 2) }}
+                                            {{ $currencyFormatter->formatValue($invoice->total_amount, 2) }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                                             <span @class([
@@ -304,7 +304,7 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-mono {{ $payment->status === 'valid' ? 'text-green-600' : 'text-red-600' }}">
-                                            {{ number_format($payment->amount, 2) }}
+                                            {{ $currencyFormatter->formatValue($payment->amount, 2) }}
                                         </td>
                                     </tr>
                                 @empty

@@ -33,7 +33,7 @@ final readonly class OrderController extends Controller implements HasMiddleware
     {
         $this->authorize('viewAny', Order::class);
 
-        $orders = Order::query()->with('customer')->latest()->paginate(10);
+        $orders = Order::query()->with(['customer', 'invoice'])->latest()->paginate(10);
 
         return view('orders.index', compact('orders'));
     }

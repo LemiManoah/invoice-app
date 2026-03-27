@@ -24,7 +24,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Total Collected</p>
-            <p class="text-xl font-bold text-green-600">{{ number_format($summary['total_collected'], 2) }}</p>
+            <p class="text-xl font-bold text-green-600">{{ $currencyFormatter->formatValue($summary['total_collected'], 2) }}</p>
         </div>
         <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Payments Count</p>
@@ -57,7 +57,7 @@
                                     -
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-sm text-right text-green-600 font-mono font-bold">{{ number_format($payment->amount, 2) }}</td>
+                            <td class="px-6 py-4 text-sm text-right text-green-600 font-mono font-bold">{{ $currencyFormatter->formatValue($payment->amount, 2) }}</td>
                         </tr>
                     @empty
                         <tr>

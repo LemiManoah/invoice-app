@@ -38,6 +38,16 @@
                                     :active="request()->routeIs('users*')">Users</x-layouts.sidebar-link>
                             @endcan
 
+                            @can('viewAny', \App\Models\PaymentMethod::class)
+                                <x-layouts.sidebar-link href="{{ route('payment-methods.index') }}" icon='fas-wallet'
+                                    :active="request()->routeIs('payment-methods*')">Payment Methods</x-layouts.sidebar-link>
+                            @endcan
+
+                            @can('viewAny', \App\Models\Currency::class)
+                                <x-layouts.sidebar-link href="{{ route('currencies.index') }}" icon='fas-coins'
+                                    :active="request()->routeIs('currencies*')">Currencies</x-layouts.sidebar-link>
+                            @endcan
+
                             @if(auth()->user()?->can('reports.view'))
                                 <x-layouts.sidebar-link href="{{ route('reports.index') }}" icon='fas-chart-line'
                                     :active="request()->routeIs('reports*')">Reports</x-layouts.sidebar-link>

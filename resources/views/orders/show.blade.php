@@ -157,7 +157,7 @@
 
                     <div class="pt-4 border-t border-gray-100 dark:border-gray-700">
                         <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Created By</p>
-                        <p class="text-xs text-gray-600 dark:text-gray-400">{{ $order->creator->name ?? 'System' }} on {{ $order->created_at->format('M d, Y') }}</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400">{{ $order->creator->name ?? 'System' }} on {{ $order->created_at?->format('M d, Y') ?? 'N/A' }}</p>
                     </div>
                 </div>
             </div>

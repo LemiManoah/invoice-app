@@ -42,15 +42,15 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
                 <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Total Invoiced</p>
-                <p class="text-xl font-bold text-gray-900 dark:text-white">{{ number_format($summary['total_invoiced'], 2) }}</p>
+                <p class="text-xl font-bold text-gray-900 dark:text-white">{{ $currencyFormatter->formatValue($summary['total_invoiced'], 2) }}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
                 <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Total Paid</p>
-                <p class="text-xl font-bold text-green-600">{{ number_format($summary['total_paid'], 2) }}</p>
+                <p class="text-xl font-bold text-green-600">{{ $currencyFormatter->formatValue($summary['total_paid'], 2) }}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
                 <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Current Balance</p>
-                <p class="text-xl font-bold text-red-600">{{ number_format($summary['balance_due'], 2) }}</p>
+                <p class="text-xl font-bold text-red-600">{{ $currencyFormatter->formatValue($summary['balance_due'], 2) }}</p>
             </div>
         </div>
 
@@ -67,8 +67,8 @@
                                 <p class="text-xs text-gray-500 dark:text-gray-400">{{ $invoice->invoice_date->format('M d, Y') }}</p>
                             </div>
                             <div class="text-right">
-                                <p class="text-sm font-bold text-gray-900 dark:text-white font-mono">{{ number_format($invoice->total_amount, 2) }}</p>
-                                <p class="text-xs text-red-600">Bal {{ number_format($invoice->balance_due, 2) }}</p>
+                                <p class="text-sm font-bold text-gray-900 dark:text-white font-mono">{{ $currencyFormatter->formatValue($invoice->total_amount, 2) }}</p>
+                                <p class="text-xs text-red-600">Bal {{ $currencyFormatter->formatValue($invoice->balance_due, 2) }}</p>
                             </div>
                         </div>
                     @empty
@@ -89,7 +89,7 @@
                                 <p class="text-xs text-gray-500 dark:text-gray-400">{{ $payment->invoice->invoice_number }}</p>
                             </div>
                             <div class="text-right">
-                                <p class="text-sm font-bold text-green-600 font-mono">{{ number_format($payment->amount, 2) }}</p>
+                                <p class="text-sm font-bold text-green-600 font-mono">{{ $currencyFormatter->formatValue($payment->amount, 2) }}</p>
                                 @if($payment->receipt)
                                     <a href="{{ route('receipts.show', $payment->receipt) }}" class="text-xs text-blue-600 dark:text-blue-400">{{ $payment->receipt->receipt_number }}</a>
                                 @endif

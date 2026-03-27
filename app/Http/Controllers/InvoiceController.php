@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Actions\Invoice\CancelInvoiceAction;
 use App\Actions\Invoice\CreateInvoiceAction;
 use App\Actions\Invoice\IssueInvoiceAction;
+use App\Actions\Invoice\PrepareInvoiceCreateDataAction;
 use App\Actions\Invoice\SyncInvoiceStatusesAction;
 use App\Actions\Invoice\UpdateInvoiceAction;
 use App\Http\Requests\CancelInvoiceRequest;
@@ -15,6 +16,7 @@ use App\Http\Requests\UpdateInvoiceRequest;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Order;
+use App\Models\PaymentMethod;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -63,22 +65,23 @@ final readonly class InvoiceController extends Controller implements HasMiddlewa
         return view('invoices.index', compact('invoices', 'status', 'search'));
     }
 
-    public function create(Request $request): View
+    public function create(Request $request, PrepareInvoiceCreateDataAction $action): View
     {
         $this->authorize('create', Invoice::class);
 
-        $customers = Customer::query()->orderBy('full_name')->get();
-        $selected_customer_id = $request->query('customer_id');
-        $orders = [];
+        $data = $action->handle(
+            $request->integer('customer_id') ?: null,
+            $request->integer('order_id') ?: null,
+        );
 
-        if ($selected_customer_id !== null) {
-            $orders = Order::query()
-                ->where('customer_id', $selected_customer_id)
-                ->whereDoesntHave('invoice')
-                ->get();
-        }
-
-        return view('invoices.create', compact('customers', 'selected_customer_id', 'orders'));
+        return view('invoices.create', [
+            'customers' => $data['customers'],
+            'orders' => $data['orders'],
+            'selectedCustomerId' => $data['selectedCustomerId'],
+            'selectedOrderId' => $data['selectedOrderId'],
+            'selectedOrder' => $data['selectedOrder'],
+            'invoiceDefaults' => $data['invoiceDefaults'],
+        ]);
     }
 
     public function store(StoreInvoiceRequest $request, CreateInvoiceAction $action): RedirectResponse
@@ -96,8 +99,9 @@ final readonly class InvoiceController extends Controller implements HasMiddlewa
 
         $syncInvoiceStatuses->handle();
         $invoice->load(['customer', 'order', 'items', 'payments.receiver', 'payments.receipt', 'payments.voider']);
+        $paymentMethods = PaymentMethod::query()->active()->ordered()->get();
 
-        return view('invoices.show', compact('invoice'));
+        return view('invoices.show', compact('invoice', 'paymentMethods'));
     }
 
     public function edit(Invoice $invoice): View|RedirectResponse

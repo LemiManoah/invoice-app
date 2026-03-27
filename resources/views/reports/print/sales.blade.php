@@ -11,9 +11,9 @@
     </div>
 
     <div class="cards">
-        <div class="card"><div class="label">Total Invoiced</div><div class="value">{{ number_format($summary['total_invoiced'], 2) }}</div></div>
-        <div class="card"><div class="label">Total Paid</div><div class="value">{{ number_format($summary['total_paid'], 2) }}</div></div>
-        <div class="card"><div class="label">Balance Due</div><div class="value">{{ number_format($summary['total_balance'], 2) }}</div></div>
+        <div class="card"><div class="label">Total Invoiced</div><div class="value">{{ $currencyFormatter->formatValue($summary['total_invoiced'], 2) }}</div></div>
+        <div class="card"><div class="label">Total Paid</div><div class="value">{{ $currencyFormatter->formatValue($summary['total_paid'], 2) }}</div></div>
+        <div class="card"><div class="label">Balance Due</div><div class="value">{{ $currencyFormatter->formatValue($summary['total_balance'], 2) }}</div></div>
         <div class="card"><div class="label">Invoice Count</div><div class="value">{{ $summary['invoice_count'] }}</div></div>
     </div>
 
@@ -34,9 +34,9 @@
                     <td>{{ $invoice->invoice_date->format('M d, Y') }}</td>
                     <td>{{ $invoice->invoice_number }}</td>
                     <td>{{ $invoice->customer->full_name }}</td>
-                    <td class="text-right">{{ number_format($invoice->total_amount, 2) }}</td>
-                    <td class="text-right">{{ number_format($invoice->amount_paid, 2) }}</td>
-                    <td class="text-right">{{ number_format($invoice->balance_due, 2) }}</td>
+                    <td class="text-right">{{ $currencyFormatter->formatValue($invoice->total_amount, 2) }}</td>
+                    <td class="text-right">{{ $currencyFormatter->formatValue($invoice->amount_paid, 2) }}</td>
+                    <td class="text-right">{{ $currencyFormatter->formatValue($invoice->balance_due, 2) }}</td>
                 </tr>
             @empty
                 <tr>

@@ -1,3 +1,7 @@
+@php
+    $currencyStep = $activeCurrency->decimal_places > 0 ? '0.01' : '1';
+@endphp
+
 <x-layouts.app title="Record Expense">
     <div class="mb-6">
         <a href="{{ route('expenses.index') }}" class="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 mb-2 inline-block">
@@ -40,7 +44,7 @@
                 <!-- Amount -->
                 <div>
                     <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount *</label>
-                    <input type="number" step="0.01" name="amount" id="amount" value="{{ old('amount') }}" required
+                    <input type="number" step="{{ $currencyStep }}" name="amount" id="amount" value="{{ old('amount') }}" required
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
                     @error('amount')
                         <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
@@ -49,16 +53,15 @@
 
                 <!-- Payment Method -->
                 <div>
-                    <label for="payment_method" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Method *</label>
-                    <select name="payment_method" id="payment_method" required
+                    <label for="payment_method_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Method *</label>
+                    <select name="payment_method_id" id="payment_method_id" required
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                        <option value="Cash" {{ old('payment_method') == 'Cash' ? 'selected' : '' }}>Cash</option>
-                        <option value="Bank Transfer" {{ old('payment_method') == 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
-                        <option value="Mobile Money" {{ old('payment_method') == 'Mobile Money' ? 'selected' : '' }}>Mobile Money</option>
-                        <option value="Card" {{ old('payment_method') == 'Card' ? 'selected' : '' }}>Card</option>
-                        <option value="Other" {{ old('payment_method') == 'Other' ? 'selected' : '' }}>Other</option>
+                        <option value="">Select Payment Method</option>
+                        @foreach($paymentMethods as $paymentMethod)
+                            <option value="{{ $paymentMethod->id }}" @selected((string) old('payment_method_id') === (string) $paymentMethod->id)>{{ $paymentMethod->name }}</option>
+                        @endforeach
                     </select>
-                    @error('payment_method')
+                    @error('payment_method_id')
                         <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
                     @enderror
                 </div>

@@ -28,11 +28,11 @@
         </div>
         <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Total Outstanding</p>
-            <p class="text-xl font-bold text-red-600">{{ number_format($summary['total_outstanding'], 2) }}</p>
+            <p class="text-xl font-bold text-red-600">{{ $currencyFormatter->formatValue($summary['total_outstanding'], 2) }}</p>
         </div>
         <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Overdue Total</p>
-            <p class="text-xl font-bold text-amber-600">{{ number_format($summary['overdue_total'], 2) }}</p>
+            <p class="text-xl font-bold text-amber-600">{{ $currencyFormatter->formatValue($summary['overdue_total'], 2) }}</p>
         </div>
     </div>
 
@@ -55,7 +55,7 @@
                             <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ $invoice->customer->full_name }}</td>
                             <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{{ $invoice->due_date?->format('M d, Y') ?? 'No due date' }}</td>
                             <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{{ ucfirst(str_replace('_', ' ', $invoice->status)) }}</td>
-                            <td class="px-6 py-4 text-sm text-right text-red-600 font-mono font-bold">{{ number_format($invoice->balance_due, 2) }}</td>
+                            <td class="px-6 py-4 text-sm text-right text-red-600 font-mono font-bold">{{ $currencyFormatter->formatValue($invoice->balance_due, 2) }}</td>
                         </tr>
                     @empty
                         <tr>

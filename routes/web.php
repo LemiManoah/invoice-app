@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\MeasurementController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
@@ -45,6 +47,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('payments/{payment}/void', [PaymentController::class, 'void'])->name('payments.void');
     Route::get('receipts/{receipt}', [ReceiptController::class, 'show'])->name('receipts.show');
     Route::get('receipts/{receipt}/print', [ReceiptController::class, 'print'])->name('receipts.print');
+    Route::resource('payment-methods', PaymentMethodController::class)
+        ->parameters(['payment-methods' => 'paymentMethod'])
+        ->except(['show']);
+    Route::resource('currencies', CurrencyController::class)->except(['show']);
+    Route::post('currencies/{currency}/default', [CurrencyController::class, 'setDefault'])->name('currencies.default');
 
     // Expenses
     Route::resource('expenses', ExpenseController::class)->except(['destroy']);

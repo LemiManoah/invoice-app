@@ -11,6 +11,7 @@ class Expense extends Model
         'expense_category_id',
         'expense_date',
         'amount',
+        'payment_method_id',
         'payment_method',
         'vendor_name',
         'reference_number',
@@ -42,6 +43,11 @@ class Expense extends Model
     public function voider(): BelongsTo
     {
         return $this->belongsTo(User::class, 'voided_by');
+    }
+
+    public function paymentMethodDefinition(): BelongsTo
+    {
+        return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
     }
 
     public function isVoided(): bool

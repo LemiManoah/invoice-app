@@ -39,7 +39,7 @@
             </div>
             <div class="pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
                 <p class="text-base font-bold text-gray-900 dark:text-white uppercase">Amount Received</p>
-                <p class="text-2xl font-black text-green-600 font-mono">{{ number_format($receipt->payment->amount, 2) }}</p>
+                <p class="text-2xl font-black text-green-600 font-mono">{{ $currencyFormatter->formatValue($receipt->payment->amount, 2) }}</p>
             </div>
         </div>
     </div>
