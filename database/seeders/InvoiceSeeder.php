@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use Illuminate\Database\Seeder;
 
 class InvoiceSeeder extends Seeder
 {
@@ -14,6 +14,7 @@ class InvoiceSeeder extends Seeder
             [
                 'invoice_number' => 'INV-2026-001',
                 'customer_id' => 1, // John Anderson
+                'currency_id' => 1,
                 'order_id' => 1, // Order 1
                 'invoice_date' => now()->subDays(58),
                 'due_date' => now()->subDays(28),
@@ -31,6 +32,7 @@ class InvoiceSeeder extends Seeder
             [
                 'invoice_number' => 'INV-2026-002',
                 'customer_id' => 3, // Michael Chen
+                'currency_id' => 1,
                 'order_id' => 3, // Order 3
                 'invoice_date' => now()->subDays(88),
                 'due_date' => now()->subDays(58),
@@ -48,6 +50,7 @@ class InvoiceSeeder extends Seeder
             [
                 'invoice_number' => 'INV-2026-003',
                 'customer_id' => 2, // Sarah Mitchell
+                'currency_id' => 2,
                 'order_id' => 2, // Order 2
                 'invoice_date' => now()->subDays(43),
                 'due_date' => now()->subDays(13),
@@ -65,6 +68,7 @@ class InvoiceSeeder extends Seeder
             [
                 'invoice_number' => 'INV-2026-004',
                 'customer_id' => 4, // Emily Rodriguez
+                'currency_id' => 1,
                 'order_id' => null, // Direct invoice, not linked to order
                 'invoice_date' => now()->subDays(5),
                 'due_date' => now()->addDays(25),
@@ -82,6 +86,7 @@ class InvoiceSeeder extends Seeder
             [
                 'invoice_number' => 'INV-2026-005',
                 'customer_id' => 5, // David Thompson
+                'currency_id' => 1,
                 'order_id' => 5, // Order 5
                 'invoice_date' => now()->subDays(8),
                 'due_date' => now()->addDays(22),

@@ -115,10 +115,10 @@
                                         {{ $item->quantity }}
                                     </td>
                                     <td class="px-6 py-4 text-right text-sm text-gray-500 dark:text-gray-400 font-mono">
-                                        {{ $currencyFormatter->formatValue($item->unit_price, 2) }}
+                                        {{ $currencyFormatter->formatValue($item->unit_price, 2, $invoice->currency) }}
                                     </td>
                                     <td class="px-6 py-4 text-right text-sm text-gray-900 dark:text-white font-semibold font-mono">
-                                        {{ $currencyFormatter->formatValue($item->line_total, 2) }}
+                                        {{ $currencyFormatter->formatValue($item->line_total, 2, $invoice->currency) }}
                                     </td>
                                 </tr>
                             @endforeach
@@ -126,23 +126,23 @@
                         <tfoot class="bg-gray-50 dark:bg-gray-900/50">
                             <tr>
                                 <td colspan="3" class="px-6 py-2 text-right text-sm font-medium text-gray-500 dark:text-gray-400 uppercase">Subtotal</td>
-                                <td class="px-6 py-2 text-right text-sm font-bold text-gray-900 dark:text-white font-mono">{{ $currencyFormatter->formatValue($invoice->subtotal_amount, 2) }}</td>
+                                <td class="px-6 py-2 text-right text-sm font-bold text-gray-900 dark:text-white font-mono">{{ $currencyFormatter->formatValue($invoice->subtotal_amount, 2, $invoice->currency) }}</td>
                             </tr>
                             @if($invoice->discount_amount > 0)
                                 <tr>
                                     <td colspan="3" class="px-6 py-2 text-right text-sm font-medium text-gray-500 dark:text-gray-400 uppercase">Discount</td>
-                                    <td class="px-6 py-2 text-right text-sm font-bold text-red-600 font-mono">-{{ $currencyFormatter->formatValue($invoice->discount_amount, 2) }}</td>
+                                    <td class="px-6 py-2 text-right text-sm font-bold text-red-600 font-mono">-{{ $currencyFormatter->formatValue($invoice->discount_amount, 2, $invoice->currency) }}</td>
                                 </tr>
                             @endif
                             @if($invoice->tax_amount > 0)
                                 <tr>
                                     <td colspan="3" class="px-6 py-2 text-right text-sm font-medium text-gray-500 dark:text-gray-400 uppercase">Tax</td>
-                                    <td class="px-6 py-2 text-right text-sm font-bold text-gray-900 dark:text-white font-mono">{{ $currencyFormatter->formatValue($invoice->tax_amount, 2) }}</td>
+                                    <td class="px-6 py-2 text-right text-sm font-bold text-gray-900 dark:text-white font-mono">{{ $currencyFormatter->formatValue($invoice->tax_amount, 2, $invoice->currency) }}</td>
                                 </tr>
                             @endif
                             <tr class="bg-gray-100 dark:bg-gray-700">
                                 <td colspan="3" class="px-6 py-3 text-right text-base font-bold text-gray-900 dark:text-white uppercase">Grand Total</td>
-                                <td class="px-6 py-3 text-right text-base font-bold text-gray-900 dark:text-white font-mono">{{ $currencyFormatter->formatValue($invoice->total_amount, 2) }}</td>
+                                <td class="px-6 py-3 text-right text-base font-bold text-gray-900 dark:text-white font-mono">{{ $currencyFormatter->formatValue($invoice->total_amount, 2, $invoice->currency) }}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -164,15 +164,15 @@
                 <div class="space-y-4">
                     <div class="flex justify-between items-center">
                         <span class="text-gray-500 dark:text-gray-400">Total Invoiced</span>
-                        <span class="font-bold text-gray-900 dark:text-white font-mono">{{ $currencyFormatter->formatValue($invoice->total_amount, 2) }}</span>
+                        <span class="font-bold text-gray-900 dark:text-white font-mono">{{ $currencyFormatter->formatValue($invoice->total_amount, 2, $invoice->currency) }}</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-gray-500 dark:text-gray-400">Total Paid</span>
-                        <span class="font-bold text-green-600 font-mono">{{ $currencyFormatter->formatValue($invoice->amount_paid, 2) }}</span>
+                        <span class="font-bold text-green-600 font-mono">{{ $currencyFormatter->formatValue($invoice->amount_paid, 2, $invoice->currency) }}</span>
                     </div>
                     <div class="pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
                         <span class="text-lg font-bold text-gray-900 dark:text-white">Balance Due</span>
-                        <span class="text-xl font-black text-red-600 font-mono">{{ $currencyFormatter->formatValue($invoice->balance_due, 2) }}</span>
+                        <span class="text-xl font-black text-red-600 font-mono">{{ $currencyFormatter->formatValue($invoice->balance_due, 2, $invoice->currency) }}</span>
                     </div>
                 </div>
             </div>
@@ -194,7 +194,7 @@
                                 @endif
                             </div>
                             <div class="text-right">
-                                <p class="text-sm font-bold {{ $payment->status === 'valid' ? 'text-green-600' : 'text-red-600' }} font-mono">{{ $currencyFormatter->formatValue($payment->amount, 2) }}</p>
+                                <p class="text-sm font-bold {{ $payment->status === 'valid' ? 'text-green-600' : 'text-red-600' }} font-mono">{{ $currencyFormatter->formatValue($payment->amount, 2, $payment->currency) }}</p>
                                 @if($payment->status === 'voided')
                                     <p class="text-[10px] bg-red-100 text-red-600 px-1 rounded inline-block">VOIDED</p>
                                 @else
@@ -245,6 +245,21 @@
                     <input type="date" name="payment_date" id="payment_date" value="{{ old('payment_date', now()->format('Y-m-d')) }}" required
                         class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
                     @error('payment_date')
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="currency_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Currency *</label>
+                    <select name="currency_id" id="currency_id" required
+                        class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                        @foreach($currencies as $currency)
+                            <option value="{{ $currency->id }}" @selected((int) old('currency_id', $invoice->currency_id ?? $activeCurrency->id) === $currency->id)>
+                                {{ $currency->code }} - {{ $currency->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('currency_id')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>

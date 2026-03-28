@@ -50,7 +50,7 @@
                                 {{ $invoice->invoice_date->format('M d, Y') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-semibold">
-                                {{ $currencyFormatter->formatValue($invoice->total_amount, 2) }}
+                                {{ $currencyFormatter->formatValue($invoice->total_amount, 2, $invoice->currency) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span @class([

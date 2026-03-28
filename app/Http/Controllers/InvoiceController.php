@@ -13,6 +13,7 @@ use App\Actions\Invoice\UpdateInvoiceAction;
 use App\Http\Requests\CancelInvoiceRequest;
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
+use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Order;
@@ -77,6 +78,7 @@ final readonly class InvoiceController extends Controller implements HasMiddlewa
         return view('invoices.create', [
             'customers' => $data['customers'],
             'orders' => $data['orders'],
+            'currencies' => Currency::active()->ordered()->get(),
             'selectedCustomerId' => $data['selectedCustomerId'],
             'selectedOrderId' => $data['selectedOrderId'],
             'selectedOrder' => $data['selectedOrder'],
@@ -98,10 +100,11 @@ final readonly class InvoiceController extends Controller implements HasMiddlewa
         $this->authorize('view', $invoice);
 
         $syncInvoiceStatuses->handle();
-        $invoice->load(['customer', 'order', 'items', 'payments.receiver', 'payments.receipt', 'payments.voider']);
+        $invoice->load(['customer', 'order', 'items', 'payments.receiver', 'payments.receipt', 'payments.voider', 'currency']);
         $paymentMethods = PaymentMethod::query()->active()->ordered()->get();
+        $currencies = Currency::active()->ordered()->get();
 
-        return view('invoices.show', compact('invoice', 'paymentMethods'));
+        return view('invoices.show', compact('invoice', 'paymentMethods', 'currencies'));
     }
 
     public function edit(Invoice $invoice): View|RedirectResponse
@@ -114,6 +117,7 @@ final readonly class InvoiceController extends Controller implements HasMiddlewa
 
         $invoice->load('items');
         $customers = Customer::query()->orderBy('full_name')->get();
+        $currencies = Currency::active()->ordered()->get();
         $orders = Order::query()
             ->where('customer_id', $invoice->customer_id)
             ->where(function (Builder $query) use ($invoice): void {
@@ -122,7 +126,7 @@ final readonly class InvoiceController extends Controller implements HasMiddlewa
             })
             ->get();
 
-        return view('invoices.edit', compact('invoice', 'customers', 'orders'));
+        return view('invoices.edit', compact('invoice', 'customers', 'currencies', 'orders'));
     }
 
     public function update(UpdateInvoiceRequest $request, Invoice $invoice, UpdateInvoiceAction $action): RedirectResponse

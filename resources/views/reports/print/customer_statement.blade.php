@@ -34,8 +34,8 @@
                         <tr>
                             <td>{{ $invoice->invoice_number }}</td>
                             <td>{{ $invoice->invoice_date->format('M d, Y') }}</td>
-                            <td class="text-right">{{ $currencyFormatter->formatValue($invoice->total_amount, 2) }}</td>
-                            <td class="text-right">{{ $currencyFormatter->formatValue($invoice->balance_due, 2) }}</td>
+                            <td class="text-right">{{ $currencyFormatter->formatValue($invoice->total_amount, 2, $invoice->currency) }}</td>
+                            <td class="text-right">{{ $currencyFormatter->formatValue($invoice->balance_due, 2, $invoice->currency) }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -63,7 +63,7 @@
                             <td>{{ $payment->payment_date->format('M d, Y') }}</td>
                             <td>{{ $payment->invoice->invoice_number }}</td>
                             <td>{{ $payment->receipt?->receipt_number ?? '-' }}</td>
-                            <td class="text-right">{{ $currencyFormatter->formatValue($payment->amount, 2) }}</td>
+                            <td class="text-right">{{ $currencyFormatter->formatValue($payment->amount, 2, $payment->currency) }}</td>
                         </tr>
                     @empty
                         <tr>

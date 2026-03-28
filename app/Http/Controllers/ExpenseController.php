@@ -10,6 +10,7 @@ use App\Actions\Expense\VoidExpenseAction;
 use App\Http\Requests\StoreExpenseRequest;
 use App\Http\Requests\UpdateExpenseRequest;
 use App\Http\Requests\VoidExpenseRequest;
+use App\Models\Currency;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\PaymentMethod;
@@ -65,8 +66,9 @@ final readonly class ExpenseController extends Controller implements HasMiddlewa
 
         $categories = ExpenseCategory::query()->where('is_active', true)->get();
         $paymentMethods = PaymentMethod::query()->active()->ordered()->get();
+        $currencies = Currency::active()->ordered()->get();
 
-        return view('expenses.create', compact('categories', 'paymentMethods'));
+        return view('expenses.create', compact('categories', 'paymentMethods', 'currencies'));
     }
 
     public function store(StoreExpenseRequest $request, CreateExpenseAction $action): RedirectResponse
@@ -82,7 +84,7 @@ final readonly class ExpenseController extends Controller implements HasMiddlewa
     {
         $this->authorize('view', $expense);
 
-        $expense->load(['category', 'creator', 'voider']);
+        $expense->load(['category', 'creator', 'voider', 'currency']);
 
         return view('expenses.show', compact('expense'));
     }
@@ -97,8 +99,9 @@ final readonly class ExpenseController extends Controller implements HasMiddlewa
 
         $categories = ExpenseCategory::query()->where('is_active', true)->get();
         $paymentMethods = PaymentMethod::query()->ordered()->get();
+        $currencies = Currency::active()->ordered()->get();
 
-        return view('expenses.edit', compact('expense', 'categories', 'paymentMethods'));
+        return view('expenses.edit', compact('expense', 'categories', 'paymentMethods', 'currencies'));
     }
 
     public function update(UpdateExpenseRequest $request, Expense $expense, UpdateExpenseAction $action): RedirectResponse

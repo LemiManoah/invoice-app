@@ -89,6 +89,18 @@
                             </div>
 
                             <div>
+                                <label for="currency_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency *</label>
+                                <select name="currency_id" id="currency_id" required
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                                    @foreach($currencies as $currency)
+                                        <option value="{{ $currency->id }}" @selected(old('currency_id', $activeCurrency->id) == $currency->id)>
+                                            {{ $currency->code }} - {{ $currency->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
                                 <label for="order_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Order Date *</label>
                                 <input type="date" name="order_date" id="order_date" value="{{ date('Y-m-d') }}" required
                                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">

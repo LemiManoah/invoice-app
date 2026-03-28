@@ -36,16 +36,36 @@ final class CurrencyManager
         }
     }
 
-    public function formatValue(mixed $amount, ?int $fallbackDecimalPlaces = null): string
+    public function formatValue(mixed $amount, ?int $fallbackDecimalPlaces = null, ?Currency $currencyContext = null): string
     {
-        $currency = $this->current();
+        $currency = $currencyContext ?? $this->current();
         $decimals = $currency->decimal_places;
 
         if ($fallbackDecimalPlaces !== null && $currency->code === 'USD') {
             $decimals = $fallbackDecimalPlaces;
         }
 
-        return number_format((float) $amount, $decimals);
+        return sprintf('%s %s', $currency->symbol, number_format((float) $amount, $decimals));
+    }
+
+    /**
+     * Convert an amount from a given currency to the base/default currency or another target currency.
+     */
+    public function convertValue(mixed $amount, ?Currency $sourceCurrency = null, ?Currency $targetCurrency = null): float
+    {
+        if ($amount === null || $amount === '') {
+            return 0.0;
+        }
+
+        $numericValue = (float) $amount;
+        $source = $sourceCurrency ?? $this->current();
+        $target = $targetCurrency ?? $this->current();
+
+        if ($target->exchange_rate <= 0) {
+            return $numericValue;
+        }
+
+        return $numericValue * ($source->exchange_rate / $target->exchange_rate);
     }
 
     /**

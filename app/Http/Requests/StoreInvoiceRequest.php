@@ -20,6 +20,7 @@ final class StoreInvoiceRequest extends FormRequest
         return [
             'customer_id' => ['required', 'integer', 'exists:customers,id'],
             'order_id' => ['nullable', 'integer', 'exists:orders,id'],
+            'currency_id' => ['required', 'integer', 'exists:currencies,id'],
             'invoice_date' => ['required', 'date'],
             'due_date' => ['nullable', 'date', 'after_or_equal:invoice_date'],
             'notes' => ['nullable', 'string'],

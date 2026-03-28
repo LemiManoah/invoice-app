@@ -45,6 +45,14 @@
                     @enderror
                 </div>
                 <div>
+                    <label for="exchange_rate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Exchange Rate (vs Base) *</label>
+                    <input type="number" name="exchange_rate" id="exchange_rate" min="0" step="0.000001" value="{{ old('exchange_rate', $currency->exchange_rate) }}" required
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                    @error('exchange_rate')
+                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
                     <label for="sort_order" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sort Order *</label>
                     <input type="number" name="sort_order" id="sort_order" min="0" value="{{ old('sort_order', $currency->sort_order) }}" required
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">

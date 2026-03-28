@@ -22,6 +22,7 @@ final class StorePaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'currency_id' => 'required|exists:currencies,id',
             'amount' => 'required|numeric|min:0.01',
             'payment_date' => 'required|date',
             'payment_method_id' => [

@@ -9,6 +9,7 @@ use App\Actions\Order\DeleteOrderAction;
 use App\Actions\Order\UpdateOrderAction;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
+use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
@@ -43,9 +44,10 @@ final readonly class OrderController extends Controller implements HasMiddleware
         $this->authorize('create', Order::class);
 
         $customers = Customer::query()->orderBy('full_name')->get();
+        $currencies = Currency::active()->ordered()->get();
         $selected_customer_id = $request->query('customer_id');
 
-        return view('orders.create', compact('customers', 'selected_customer_id'));
+        return view('orders.create', compact('customers', 'currencies', 'selected_customer_id'));
     }
 
     public function store(StoreOrderRequest $request, CreateOrderAction $action): RedirectResponse
@@ -62,7 +64,7 @@ final readonly class OrderController extends Controller implements HasMiddleware
     {
         $this->authorize('view', $order);
 
-        $order->load(['customer', 'items', 'invoice', 'creator', 'assignee']);
+        $order->load(['customer', 'items', 'invoice', 'creator', 'assignee', 'currency']);
 
         return view('orders.show', compact('order'));
     }
@@ -72,9 +74,10 @@ final readonly class OrderController extends Controller implements HasMiddleware
         $this->authorize('update', $order);
 
         $customers = Customer::query()->orderBy('full_name')->get();
+        $currencies = Currency::active()->ordered()->get();
         $order->load('items');
 
-        return view('orders.edit', compact('order', 'customers'));
+        return view('orders.edit', compact('order', 'customers', 'currencies'));
     }
 
     public function update(UpdateOrderRequest $request, Order $order, UpdateOrderAction $action): RedirectResponse

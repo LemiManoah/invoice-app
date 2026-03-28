@@ -55,7 +55,7 @@
                             <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ $invoice->customer->full_name }}</td>
                             <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{{ $invoice->due_date?->format('M d, Y') ?? 'No due date' }}</td>
                             <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{{ ucfirst(str_replace('_', ' ', $invoice->status)) }}</td>
-                            <td class="px-6 py-4 text-sm text-right text-red-600 font-mono font-bold">{{ $currencyFormatter->formatValue($invoice->balance_due, 2) }}</td>
+                            <td class="px-6 py-4 text-sm text-right text-red-600 font-mono font-bold">{{ $currencyFormatter->formatValue($invoice->balance_due, 2, $invoice->currency) }}</td>
                         </tr>
                     @empty
                         <tr>

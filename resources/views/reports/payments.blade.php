@@ -57,7 +57,7 @@
                                     -
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-sm text-right text-green-600 font-mono font-bold">{{ $currencyFormatter->formatValue($payment->amount, 2) }}</td>
+                            <td class="px-6 py-4 text-sm text-right text-green-600 font-mono font-bold">{{ $currencyFormatter->formatValue($payment->amount, 2, $payment->currency) }}</td>
                         </tr>
                     @empty
                         <tr>

@@ -28,6 +28,7 @@ final class UpdateCurrencyRequest extends FormRequest
             'code' => ['required', 'string', 'size:3', Rule::unique('currencies', 'code')->ignore($currency)],
             'symbol' => ['required', 'string', 'max:20'],
             'decimal_places' => ['required', 'integer', 'min:0', 'max:4'],
+            'exchange_rate' => ['required', 'numeric', 'min:0'],
             'is_active' => ['required', 'boolean'],
             'is_default' => ['required', 'boolean'],
             'sort_order' => ['required', 'integer', 'min:0'],

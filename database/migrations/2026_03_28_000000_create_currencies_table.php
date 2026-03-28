@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('code', 10)->unique();
             $table->string('symbol', 20);
             $table->unsignedTinyInteger('decimal_places')->default(0);
+            $table->decimal('exchange_rate', 15, 6)->default(1.0);
             $table->boolean('is_default')->default(false);
             $table->boolean('is_active')->default(true);
             $table->unsignedInteger('sort_order')->default(0);

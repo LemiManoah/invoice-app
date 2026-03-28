@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Report;
 
 use App\Models\Invoice;
+use App\Support\CurrencyManager;
 use Carbon\Carbon;
 
 final readonly class ComputeOutstandingBalancesReportAction
@@ -18,18 +19,20 @@ final readonly class ComputeOutstandingBalancesReportAction
         $end = $endDate ? Carbon::parse($endDate) : Carbon::now()->endOfMonth();
 
         $invoices = Invoice::query()
-            ->with('customer')
+            ->with(['customer', 'currency'])
             ->whereNotIn('status', ['draft', 'cancelled', 'paid'])
             ->whereBetween('invoice_date', [$start->toDateString(), $end->toDateString()])
             ->orderByDesc('balance_due')
             ->get();
 
+        $currencyManager = app(CurrencyManager::class);
+
         return [
             'invoices' => $invoices,
             'summary' => [
                 'customers_with_balances' => $invoices->pluck('customer_id')->unique()->count(),
-                'total_outstanding' => $invoices->sum('balance_due'),
-                'overdue_total' => $invoices->where('status', 'overdue')->sum('balance_due'),
+                'total_outstanding' => $invoices->sum(fn (Invoice $i) => $currencyManager->convertValue($i->balance_due, $i->currency)),
+                'overdue_total' => $invoices->where('status', 'overdue')->sum(fn (Invoice $i) => $currencyManager->convertValue($i->balance_due, $i->currency)),
             ],
             'start_date' => $start->toDateString(),
             'end_date' => $end->toDateString(),

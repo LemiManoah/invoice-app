@@ -75,7 +75,7 @@
                                         <p class="text-xs text-gray-500">{{ $expense->category->name }}</p>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600 font-mono font-bold">
-                                        {{ $currencyFormatter->formatValue($expense->amount, 2) }}
+                                        {{ $currencyFormatter->formatValue($expense->amount, 2, $expense->currency) }}
                                     </td>
                                 </tr>
                             @empty

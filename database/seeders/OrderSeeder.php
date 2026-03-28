@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Order;
 use App\Models\OrderItem;
+use Illuminate\Database\Seeder;
 
 class OrderSeeder extends Seeder
 {
@@ -14,6 +14,7 @@ class OrderSeeder extends Seeder
             [
                 'order_number' => 'ORD-2026-001',
                 'customer_id' => 1, // John Anderson
+                'currency_id' => 1,
                 'order_date' => now()->subDays(60),
                 'promised_delivery_date' => now()->subDays(30),
                 'actual_completion_date' => now()->subDays(28),
@@ -26,6 +27,7 @@ class OrderSeeder extends Seeder
             [
                 'order_number' => 'ORD-2026-002',
                 'customer_id' => 2, // Sarah Mitchell
+                'currency_id' => 2,
                 'order_date' => now()->subDays(45),
                 'promised_delivery_date' => now()->subDays(15),
                 'actual_completion_date' => null,
@@ -38,6 +40,7 @@ class OrderSeeder extends Seeder
             [
                 'order_number' => 'ORD-2026-003',
                 'customer_id' => 3, // Michael Chen
+                'currency_id' => 1,
                 'order_date' => now()->subDays(90),
                 'promised_delivery_date' => now()->subDays(60),
                 'actual_completion_date' => now()->subDays(58),
@@ -50,6 +53,7 @@ class OrderSeeder extends Seeder
             [
                 'order_number' => 'ORD-2026-004',
                 'customer_id' => 4, // Emily Rodriguez
+                'currency_id' => 1,
                 'order_date' => now()->subDays(20),
                 'promised_delivery_date' => now()->addDays(10),
                 'actual_completion_date' => null,
@@ -62,6 +66,7 @@ class OrderSeeder extends Seeder
             [
                 'order_number' => 'ORD-2026-005',
                 'customer_id' => 5, // David Thompson
+                'currency_id' => 1,
                 'order_date' => now()->subDays(10),
                 'promised_delivery_date' => now()->addDays(20),
                 'actual_completion_date' => null,

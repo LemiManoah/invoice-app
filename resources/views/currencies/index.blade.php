@@ -48,7 +48,9 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                 <span class="font-medium text-gray-900 dark:text-white">{{ $currency->symbol }}</span>
                                 <span class="mx-1">|</span>
-                                {{ $currency->decimal_places }} decimal {{ $currency->decimal_places === 1 ? 'place' : 'places' }}
+                                {{ $currency->decimal_places }} decimals
+                                <span class="mx-1">|</span>
+                                Rate: {{ number_format($currency->exchange_rate, 4) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex flex-wrap gap-2">

@@ -14,6 +14,7 @@ final class Currency extends Model
         'code',
         'symbol',
         'decimal_places',
+        'exchange_rate',
         'is_default',
         'is_active',
         'sort_order',
@@ -21,6 +22,7 @@ final class Currency extends Model
 
     protected $casts = [
         'decimal_places' => 'integer',
+        'exchange_rate' => 'decimal:6',
         'is_default' => 'boolean',
         'is_active' => 'boolean',
         'sort_order' => 'integer',

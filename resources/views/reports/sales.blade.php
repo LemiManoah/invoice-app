@@ -72,13 +72,13 @@
                                 {{ $invoice->customer->full_name }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white font-mono">
-                                {{ $currencyFormatter->formatValue($invoice->total_amount, 2) }}
+                                {{ $currencyFormatter->formatValue($invoice->total_amount, 2, $invoice->currency) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-green-600 font-mono">
-                                {{ $currencyFormatter->formatValue($invoice->amount_paid, 2) }}
+                                {{ $currencyFormatter->formatValue($invoice->amount_paid, 2, $invoice->currency) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600 font-mono">
-                                {{ $currencyFormatter->formatValue($invoice->balance_due, 2) }}
+                                {{ $currencyFormatter->formatValue($invoice->balance_due, 2, $invoice->currency) }}
                             </td>
                         </tr>
                     @empty

@@ -188,6 +188,7 @@ final class ExpenseSeeder extends Seeder
         ];
 
         $expenses = array_map(static fn (array $expense): array => [
+            'currency_id' => 1,
             'voided_at' => null,
             'voided_by' => null,
             'void_reason' => null,

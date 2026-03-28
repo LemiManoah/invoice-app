@@ -15,6 +15,7 @@ final class PaymentSeeder extends Seeder
         $payments = [
             [
                 'invoice_id' => 1,
+                'currency_id' => 1,
                 'payment_date' => now()->subDays(50),
                 'amount' => 1296.00,
                 'payment_method_id' => $this->paymentMethodId('Card'),
@@ -29,6 +30,7 @@ final class PaymentSeeder extends Seeder
             ],
             [
                 'invoice_id' => 2,
+                'currency_id' => 1,
                 'payment_date' => now()->subDays(80),
                 'amount' => 1500.00,
                 'payment_method_id' => $this->paymentMethodId('Bank Transfer'),
@@ -43,6 +45,7 @@ final class PaymentSeeder extends Seeder
             ],
             [
                 'invoice_id' => 2,
+                'currency_id' => 1,
                 'payment_date' => now()->subDays(60),
                 'amount' => 1416.00,
                 'payment_method_id' => $this->paymentMethodId('Cash'),
@@ -57,6 +60,7 @@ final class PaymentSeeder extends Seeder
             ],
             [
                 'invoice_id' => 3,
+                'currency_id' => 2,
                 'payment_date' => now()->subDays(35),
                 'amount' => 1000.00,
                 'payment_method_id' => $this->paymentMethodId('Card'),
@@ -71,6 +75,7 @@ final class PaymentSeeder extends Seeder
             ],
             [
                 'invoice_id' => 3,
+                'currency_id' => 2,
                 'payment_date' => now()->subDays(20),
                 'amount' => 1000.00,
                 'payment_method_id' => $this->paymentMethodId('Bank Transfer'),
@@ -85,6 +90,7 @@ final class PaymentSeeder extends Seeder
             ],
             [
                 'invoice_id' => 1,
+                'currency_id' => 1,
                 'payment_date' => now()->subDays(55),
                 'amount' => 100.00,
                 'payment_method_id' => $this->paymentMethodId('Check'),

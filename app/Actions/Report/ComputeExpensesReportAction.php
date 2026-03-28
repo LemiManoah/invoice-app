@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Report;
 
 use App\Models\Expense;
+use App\Support\CurrencyManager;
 use Carbon\Carbon;
 
 final readonly class ComputeExpensesReportAction
@@ -18,15 +19,17 @@ final readonly class ComputeExpensesReportAction
         $end = $endDate ? Carbon::parse($endDate) : Carbon::now()->endOfMonth();
 
         $expenses = Expense::query()
-            ->with('category')
+            ->with(['category', 'currency'])
             ->where('status', 'valid')
             ->whereBetween('expense_date', [$start->toDateString(), $end->toDateString()])
             ->get();
 
-        $byCategory = $expenses->groupBy('expense_category_id')->map(function ($group): array {
+        $currencyManager = app(CurrencyManager::class);
+
+        $byCategory = $expenses->groupBy('expense_category_id')->map(function ($group) use ($currencyManager): array {
             return [
                 'name' => $group->first()?->category?->name ?? 'Unknown',
-                'total' => $group->sum('amount'),
+                'total' => $group->sum(fn (Expense $e) => $currencyManager->convertValue($e->amount, $e->currency)),
             ];
         });
 

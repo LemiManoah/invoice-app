@@ -80,6 +80,17 @@
                                 </select>
                             </div>
                             <div>
+                                <label for="currency_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency *</label>
+                                <select name="currency_id" id="currency_id" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                                    @foreach($currencies as $currency)
+                                        <option value="{{ $currency->id }}" @selected(old('currency_id', $invoice->currency_id ?? $activeCurrency->id) == $currency->id)>{{ $currency->code }} - {{ $currency->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('currency_id')
+                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
                                 <label for="order_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Linked Order</label>
                                 <select name="order_id" id="order_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
                                     <option value="">No linked order</option>

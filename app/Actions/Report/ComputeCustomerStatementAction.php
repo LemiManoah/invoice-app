@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Report;
 
 use App\Models\Customer;
+use App\Support\CurrencyManager;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -26,17 +27,20 @@ final readonly class ComputeCustomerStatementAction
 
         if ($customer !== null) {
             $invoices = $customer->invoices()
+                ->with('currency')
                 ->whereBetween('invoice_date', [$start->toDateString(), $end->toDateString()])
                 ->orderBy('invoice_date')
                 ->get();
 
             $payments = $customer->payments()
-                ->with(['invoice', 'receipt'])
+                ->with(['invoice', 'receipt', 'currency'])
                 ->where('status', 'valid')
                 ->whereBetween('payment_date', [$start->toDateString(), $end->toDateString()])
                 ->orderBy('payment_date')
                 ->get();
         }
+
+        $currencyManager = app(CurrencyManager::class);
 
         return [
             'customers' => Customer::query()->orderBy('full_name')->get(),
@@ -44,9 +48,9 @@ final readonly class ComputeCustomerStatementAction
             'invoices' => $invoices,
             'payments' => $payments,
             'summary' => [
-                'total_invoiced' => $invoices->sum('total_amount'),
-                'total_paid' => $payments->sum('amount'),
-                'balance_due' => $customer?->invoices()->whereNotIn('status', ['cancelled', 'paid'])->sum('balance_due') ?? 0,
+                'total_invoiced' => collect($invoices)->sum(fn ($i) => $currencyManager->convertValue($i->total_amount, $i->currency)),
+                'total_paid' => collect($payments)->sum(fn ($p) => $currencyManager->convertValue($p->amount, $p->currency)),
+                'balance_due' => $customer ? $customer->invoices()->with('currency')->whereNotIn('status', ['cancelled', 'paid'])->get()->sum(fn ($i) => $currencyManager->convertValue($i->balance_due, $i->currency)) : 0,
             ],
             'start_date' => $start->toDateString(),
             'end_date' => $end->toDateString(),

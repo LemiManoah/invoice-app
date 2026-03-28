@@ -35,7 +35,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <p class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-bold">Amount</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $currencyFormatter->formatValue($expense->amount, 2) }}</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $currencyFormatter->formatValue($expense->amount, 2, $expense->currency) }}</p>
                         </div>
                         <div>
                             <p class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-bold">Payment Method</p>

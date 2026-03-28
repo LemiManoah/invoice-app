@@ -12,6 +12,7 @@ class Order extends Model
     protected $fillable = [
         'order_number',
         'customer_id',
+        'currency_id',
         'order_date',
         'promised_delivery_date',
         'actual_completion_date',
@@ -31,6 +32,11 @@ class Order extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function currency(): BelongsTo
+    {
+        return $this->belongsTo(Currency::class);
     }
 
     public function items(): HasMany

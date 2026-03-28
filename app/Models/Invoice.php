@@ -13,6 +13,7 @@ class Invoice extends Model
         'invoice_number',
         'customer_id',
         'order_id',
+        'currency_id',
         'invoice_date',
         'due_date',
         'status',
@@ -46,6 +47,11 @@ class Invoice extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function currency(): BelongsTo
+    {
+        return $this->belongsTo(Currency::class);
     }
 
     public function order(): BelongsTo
