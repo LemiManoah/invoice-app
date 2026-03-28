@@ -12,11 +12,11 @@ final readonly class PrepareInvoiceCreateDataAction
 {
     /**
      * @return array{
-     *     customers: \Illuminate\Support\Collection<int, \App\Models\Customer>,
-     *     orders: \Illuminate\Support\Collection<int, \App\Models\Order>,
+     *     customers: Collection<int, Customer>,
+     *     orders: Collection<int, Order>,
      *     selectedCustomerId: int|null,
      *     selectedOrderId: int|null,
-     *     selectedOrder: \App\Models\Order|null,
+     *     selectedOrder: Order|null,
      *     invoiceDefaults: array{
      *         items: array<int, array{item_name: string, description: string, quantity: int, unit_price: float}>,
      *         notes: string|null,
@@ -64,7 +64,7 @@ final readonly class PrepareInvoiceCreateDataAction
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, \App\Models\Order>
+     * @return Collection<int, Order>
      */
     private function ordersForCustomer(?int $customerId, ?int $selectedOrderId): Collection
     {

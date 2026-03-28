@@ -12,11 +12,10 @@ final readonly class CreateCurrencyAction
 {
     public function __construct(
         private CreateAuditLogAction $createAuditLog,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public function handle(array $attributes): Currency
     {

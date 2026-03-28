@@ -13,8 +13,7 @@ final readonly class CreateExpenseAction
 {
     public function __construct(
         private CreateAuditLogAction $createAuditLog,
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array<string, mixed>  $data

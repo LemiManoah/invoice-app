@@ -16,8 +16,7 @@ final readonly class VoidPaymentAction
     public function __construct(
         private RefreshInvoiceStatusAction $refreshInvoiceStatus,
         private CreateAuditLogAction $createAuditLog,
-    ) {
-    }
+    ) {}
 
     public function handle(Payment $payment, string $reason): Payment
     {

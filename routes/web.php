@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuditLogController;
-use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CurrencyController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
@@ -12,8 +12,9 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReportController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\Settings;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -27,19 +28,19 @@ Route::get('dashboard', [DashboardController::class, 'index'])
 Route::middleware(['auth'])->group(function () {
     // Customers
     Route::resource('customers', CustomerController::class)->except(['destroy']);
-    
+
     // Measurements
     Route::resource('customers.measurements', MeasurementController::class)->shallow();
-    
+
     // Orders
     Route::resource('orders', OrderController::class);
-    
+
     // Invoices
     Route::resource('invoices', InvoiceController::class)->except(['destroy']);
     Route::post('invoices/{invoice}/issue', [InvoiceController::class, 'issue'])->name('invoices.issue');
     Route::post('invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
-    
+
     // Payments
     Route::post('invoices/{invoice}/payments', [PaymentController::class, 'store'])->name('payments.store');
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
@@ -72,6 +73,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('reports/profit-loss', [ReportController::class, 'profitLoss'])->name('reports.profit-loss');
     Route::get('reports/profit-loss/print', [ReportController::class, 'profitLossPrint'])->name('reports.profit-loss.print');
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::resource('roles', RoleController::class)->except(['show']);
     Route::resource('users', UserController::class)->except(['show', 'destroy']);
 
     // Settings

@@ -12,8 +12,7 @@ final readonly class CreateUserAction
 {
     public function __construct(
         private CreateAuditLogAction $createAuditLog,
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array<string, mixed>  $attributes

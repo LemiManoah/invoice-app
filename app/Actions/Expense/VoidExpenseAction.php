@@ -13,8 +13,7 @@ final readonly class VoidExpenseAction
 {
     public function __construct(
         private CreateAuditLogAction $createAuditLog,
-    ) {
-    }
+    ) {}
 
     public function handle(Expense $expense, string $reason): Expense
     {

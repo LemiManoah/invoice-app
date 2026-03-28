@@ -19,8 +19,7 @@ final readonly class CreatePaymentAction
         private GenerateReceiptAction $generateReceipt,
         private RefreshInvoiceStatusAction $refreshInvoiceStatus,
         private CreateAuditLogAction $createAuditLog,
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array<string, mixed>  $data

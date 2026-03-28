@@ -13,8 +13,7 @@ final readonly class DeleteCurrencyAction
 {
     public function __construct(
         private CreateAuditLogAction $createAuditLog,
-    ) {
-    }
+    ) {}
 
     public function handle(Currency $currency): void
     {

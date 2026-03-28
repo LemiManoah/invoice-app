@@ -13,8 +13,7 @@ final readonly class CancelInvoiceAction
 {
     public function __construct(
         private CreateAuditLogAction $createAuditLog,
-    ) {
-    }
+    ) {}
 
     public function handle(Invoice $invoice, string $reason): Invoice
     {

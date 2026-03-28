@@ -12,8 +12,7 @@ final readonly class SetDefaultCurrencyAction
 {
     public function __construct(
         private CreateAuditLogAction $createAuditLog,
-    ) {
-    }
+    ) {}
 
     public function handle(Currency $currency): Currency
     {

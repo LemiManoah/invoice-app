@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Measurement;
+use Illuminate\Database\Seeder;
 
 class MeasurementSeeder extends Seeder
 {

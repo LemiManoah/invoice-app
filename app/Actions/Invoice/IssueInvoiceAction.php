@@ -13,8 +13,7 @@ final readonly class IssueInvoiceAction
     public function __construct(
         private CreateAuditLogAction $createAuditLog,
         private RefreshInvoiceStatusAction $refreshInvoiceStatus,
-    ) {
-    }
+    ) {}
 
     public function handle(Invoice $invoice): Invoice
     {

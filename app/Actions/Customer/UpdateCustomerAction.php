@@ -11,8 +11,7 @@ final readonly class UpdateCustomerAction
 {
     public function __construct(
         private CreateAuditLogAction $createAuditLog,
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array<string, mixed>  $data

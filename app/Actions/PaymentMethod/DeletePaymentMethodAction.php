@@ -13,8 +13,7 @@ final readonly class DeletePaymentMethodAction
 {
     public function __construct(
         private CreateAuditLogAction $createAuditLog,
-    ) {
-    }
+    ) {}
 
     public function handle(PaymentMethod $paymentMethod): void
     {
