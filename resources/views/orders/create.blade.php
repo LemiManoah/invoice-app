@@ -18,24 +18,34 @@
                         <div class="space-y-8">
                             <template x-for="(item, index) in items" :key="index">
                                 <div class="p-4 border border-gray-100 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900/50 relative">
-                                    <button type="button" @click="removeItem(index)" class="absolute top-4 right-4 text-red-500 hover:text-red-700">
-                                        <i class="fas fa-times"></i>
+                                    <button type="button" @click="removeItem(index)" class="absolute top-4 right-4 text-red-500 hover:text-red-700 p-1" title="Remove item">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
                                     </button>
                                     
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Garment Type *</label>
-                                            <select :name="'items['+index+'][garment_type]'" x-model="item.garment_type" required
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Item *</label>
+                                            <select :name="'items['+index+'][product_id]'" x-model="item.product_id" @change="onProductChange(index)"
                                                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                                                <option value="">Select Type</option>
-                                                <option value="Suit (2-Piece)">Suit (2-Piece)</option>
-                                                <option value="Suit (3-Piece)">Suit (3-Piece)</option>
-                                                <option value="Jacket/Blazer">Jacket/Blazer</option>
-                                                <option value="Trouser">Trouser</option>
-                                                <option value="Waistcoat">Waistcoat</option>
-                                                <option value="Shirt">Shirt</option>
-                                                <option value="Coat">Coat</option>
+                                                <option value="">Select Product</option>
+                                                <option value="custom">+ Custom Item</option>
+                                                @foreach($products as $product)
+                                                    <option value="{{ $product->id }}">{{ $product->name }}</option>
+                                                @endforeach
                                             </select>
+                                        </div>
+                                        <div x-show="item.product_id === 'custom'" x-transition>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Custom Item Name *</label>
+                                            <input type="text" :name="'items['+index+'][garment_type]'" x-model="item.custom_name" placeholder="Enter item name"
+                                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                                        </div>
+                                        <div x-show="item.product_id && item.product_id !== 'custom'" x-transition>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Base Price</label>
+                                            <div x-text="item.product_id ? getProductPrice(item.product_id) : '-'"
+                                                class="px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-900 text-sm text-gray-600 dark:text-gray-400">
+                                            </div>
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantity *</label>
@@ -58,7 +68,7 @@
                         </div>
 
                         <button type="button" @click="addItem()" class="mt-6 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 transition text-sm font-medium">
-                            <i class="fas fa-plus mr-1"></i> Add Another Garment
+                            <i class="fas fa-plus mr-1"></i> Add Another Item
                         </button>
                     </div>
 
@@ -135,17 +145,33 @@
 
     <script>
         function orderForm() {
+            const products = @json($products);
+
             return {
                 items: [{
-                    garment_type: '',
+                    product_id: '',
+                    custom_name: '',
                     quantity: 1,
                     style_notes: '',
                     fabric_details: ''
                 }],
 
+                getProductPrice(productId) {
+                    const product = products.find(p => p.id == productId);
+                    return product && product.base_price ?  + parseFloat(product.base_price).toFixed(2) : 'N/A';
+                },
+
+                onProductChange(index) {
+                    const item = this.items[index];
+                    if (item.product_id !== 'custom') {
+                        item.custom_name = '';
+                    }
+                },
+
                 addItem() {
                     this.items.push({
-                        garment_type: '',
+                        product_id: '',
+                        custom_name: '',
                         quantity: 1,
                         style_notes: '',
                         fabric_details: ''

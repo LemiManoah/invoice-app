@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->constrained()->onDelete('cascade');
             $table->string('garment_type');
+            $table->foreignId('product_id')->nullable()->constrained()->onDelete('set null');
             $table->text('description')->nullable();
             $table->integer('quantity')->default(1);
             $table->decimal('unit_price', 15, 2)->nullable();

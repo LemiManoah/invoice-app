@@ -28,6 +28,11 @@
                                     :active="request()->routeIs('orders*')">Orders</x-layouts.sidebar-link>
                             @endcan
 
+                            @if(auth()->user()?->can('products.view'))
+                                <x-layouts.sidebar-link href="{{ route('products.index') }}" icon='fas-box'
+                                    :active="request()->routeIs('products*')">Products</x-layouts.sidebar-link>
+                            @endif
+
                             @can('viewAny', \App\Models\Expense::class)
                                 <x-layouts.sidebar-link href="{{ route('expenses.index') }}" icon='fas-money-bill-wave'
                                     :active="request()->routeIs('expenses*')">Expenses</x-layouts.sidebar-link>

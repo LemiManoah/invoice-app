@@ -1,15 +1,5 @@
 <x-layouts.app title="Dashboard">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-        <!-- New Customers Today -->
-        <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
-            <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">New Customers</p>
-            <div class="flex items-center justify-between">
-                <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['new_customers_today'] }}</span>
-                <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-blue-600">
-                    <i class="fas fa-user-plus text-sm"></i>
-                </div>
-            </div>
-        </div>
 
         <!-- Invoices Today -->
         <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">

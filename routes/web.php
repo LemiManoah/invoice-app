@@ -4,12 +4,15 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\MeasurementController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentMethodController;
+use App\Http\Controllers\ProductCategoryController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
@@ -54,10 +57,14 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('currencies', CurrencyController::class)->except(['show']);
     Route::post('currencies/{currency}/default', [CurrencyController::class, 'setDefault'])->name('currencies.default');
 
+    // Products
+    Route::resource('products', ProductController::class)->except(['show']);
+    Route::resource('product-categories', ProductCategoryController::class)->except(['show']);
+
     // Expenses
     Route::resource('expenses', ExpenseController::class)->except(['destroy']);
     Route::post('expenses/{expense}/void', [ExpenseController::class, 'void'])->name('expenses.void');
-    Route::resource('expense-categories', \App\Http\Controllers\ExpenseCategoryController::class)->except(['show']);
+    Route::resource('expense-categories', ExpenseCategoryController::class)->except(['show']);
 
     // Reports
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');

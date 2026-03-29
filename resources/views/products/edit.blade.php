@@ -1,0 +1,80 @@
+<x-layouts.app title="Edit Product">
+    <div class="mb-6">
+        <a href="{{ route('products.index') }}" class="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 mb-2 inline-block">
+            <i class="fas fa-arrow-left mr-1"></i> Back to Products
+        </a>
+        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Edit Product</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Update product details.</p>
+    </div>
+
+    @if($errors->any())
+        <div class="mb-6 rounded-md bg-red-50 dark:bg-red-900/30 p-4 border border-red-200 dark:border-red-800">
+            <div class="flex">
+                <div class="flex-shrink-0"><i class="fas fa-exclamation-circle text-red-400"></i></div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800 dark:text-red-300">There were {{ $errors->count() }} errors with your submission</h3>
+                    <div class="mt-2 text-sm text-red-700 dark:text-red-400">
+                        <ul class="list-disc pl-5 space-y-1">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border border-gray-200 dark:border-gray-700 mb-6 max-w-2xl">
+        <form action="{{ route('products.update', $product) }}" method="POST">
+            @csrf
+            @method('PUT')
+
+            <div class="mb-5">
+                <label for="product_category_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                <select name="product_category_id" id="product_category_id"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Select Category (optional)</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}" {{ old('product_category_id', $product->product_category_id) == $category->id ? 'selected' : '' }}>
+                            {{ $category->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="mb-5">
+                <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product Name *</label>
+                <input type="text" name="name" id="name" value="{{ old('name', $product->name) }}" required
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div class="mb-5">
+                <label for="base_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Base Price</label>
+                <input type="number" name="base_price" id="base_price" value="{{ old('base_price', $product->base_price) }}" step="0.01" min="0" placeholder="0.00"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500">
+                <p class="mt-1 text-xs text-gray-400">Optional. Default price for this product.</p>
+            </div>
+
+            <div class="mb-5">
+                <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                <textarea name="description" id="description" rows="3"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500">{{ old('description', $product->description) }}</textarea>
+                <p class="mt-1 text-xs text-gray-400">Optional. Describe the product details.</p>
+            </div>
+
+            <div class="mb-6">
+                <label class="flex items-center cursor-pointer">
+                    <input type="checkbox" name="is_active" value="1" {{ old('is_active', $product->is_active) ? 'checked' : '' }}
+                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700">
+                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Active (can be selected when creating orders)</span>
+                </label>
+            </div>
+
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                <a href="{{ route('products.index') }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 mr-3 transition">Cancel</a>
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md shadow-sm text-sm font-medium hover:bg-blue-700 transition">Update Product</button>
+            </div>
+        </form>
+    </div>
+</x-layouts.app>

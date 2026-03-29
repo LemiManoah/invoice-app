@@ -12,6 +12,7 @@ use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -45,9 +46,13 @@ final readonly class OrderController extends Controller implements HasMiddleware
 
         $customers = Customer::query()->orderBy('full_name')->get();
         $currencies = Currency::active()->ordered()->get();
+        $products = Product::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
         $selected_customer_id = $request->query('customer_id');
 
-        return view('orders.create', compact('customers', 'currencies', 'selected_customer_id'));
+        return view('orders.create', compact('customers', 'currencies', 'products', 'selected_customer_id'));
     }
 
     public function store(StoreOrderRequest $request, CreateOrderAction $action): RedirectResponse
