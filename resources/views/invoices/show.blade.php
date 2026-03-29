@@ -218,41 +218,52 @@
     @can('create', [\App\Models\Payment::class, $invoice])
         @if($paymentMethods->isNotEmpty())
         <x-modal name="record-payment" maxWidth="lg">
-            <form action="{{ route('payments.store', $invoice) }}" method="POST" class="p-6">
+            <form action="{{ route('payments.store', $invoice) }}" method="POST" class="p-6" x-data="{ amount: {{ old('amount', $invoice->balance_due) }}, balanceDue: {{ $invoice->balance_due }} }">
                 @csrf
-                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                    Record Payment for {{ $invoice->invoice_number }}
-                </h2>
+                <div class="mb-5 border-b border-gray-100 dark:border-gray-700 pb-4">
+                    <h2 class="text-lg font-medium text-gray-900 dark:text-white">
+                        Record Payment
+                    </h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Invoice {{ $invoice->invoice_number }} &bull; Balance Due: {{ $currencyFormatter->formatValue($invoice->balance_due, 2, $invoice->currency) }}
+                    </p>
+                </div>
 
                 @if($errors->hasAny(['amount', 'payment_date', 'payment_method_id', 'reference_number', 'notes']))
-                    <div class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300">
+                    <div class="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300">
                         Please correct the payment form errors below and try again.
                     </div>
                 @endif
 
-                <div class="space-y-4">
-                    <div>
-                    <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount</label>
-                    <input type="number" name="amount" id="amount" step="{{ $currencyStep }}" min="{{ $currencyStep }}" max="{{ $invoice->balance_due }}" value="{{ old('amount', $invoice->balance_due) }}" required
-                        class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                <div class="mb-5">
+                    <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount Received *</label>
+                    <input type="number" name="amount" id="amount" step="{{ $currencyStep }}" min="{{ $currencyStep }}" x-model.number="amount" required
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500">
+                    
+                    <template x-if="amount > balanceDue">
+                        <div class="mt-2 text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+                            Change to return: <span x-text="'{{ $activeCurrency->symbol }}' + (amount - balanceDue).toFixed({{ $activeCurrency->decimal_places > 0 ? 2 : 0 }})"></span>
+                        </div>
+                    </template>
+                    
                     @error('amount')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div>
-                    <label for="payment_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Date</label>
+                <div class="mb-5">
+                    <label for="payment_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Date *</label>
                     <input type="date" name="payment_date" id="payment_date" value="{{ old('payment_date', now()->format('Y-m-d')) }}" required
-                        class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500">
                     @error('payment_date')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div>
-                    <label for="currency_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Currency *</label>
+                <div class="mb-5">
+                    <label for="currency_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency *</label>
                     <select name="currency_id" id="currency_id" required
-                        class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500">
                         @foreach($currencies as $currency)
                             <option value="{{ $currency->id }}" @selected((int) old('currency_id', $invoice->currency_id ?? $activeCurrency->id) === $currency->id)>
                                 {{ $currency->code }} - {{ $currency->name }}
@@ -264,11 +275,11 @@
                     @enderror
                 </div>
 
-                <div>
-                    <label for="payment_method_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</label>
+                <div class="mb-5">
+                    <label for="payment_method_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Method *</label>
                     <select name="payment_method_id" id="payment_method_id" required
-                        class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                        <option value="">Select Payment Method</option>
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select Method</option>
                         @foreach($paymentMethods as $paymentMethod)
                             <option value="{{ $paymentMethod->id }}" @selected((string) old('payment_method_id') === (string) $paymentMethod->id)>{{ $paymentMethod->name }}</option>
                         @endforeach
@@ -278,30 +289,29 @@
                     @enderror
                 </div>
 
-                <div>
-                    <label for="reference_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reference Number</label>
+                <div class="mb-5">
+                    <label for="reference_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Reference Number</label>
                     <input type="text" name="reference_number" id="reference_number" value="{{ old('reference_number') }}"
-                        class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500">
                     @error('reference_number')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div>
-                    <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+                <div class="mb-6">
+                    <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Internal Notes</label>
                     <textarea name="notes" id="notes" rows="2"
-                        class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ old('notes') }}</textarea>
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500">{{ old('notes') }}</textarea>
                     @error('notes')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
-                </div>
 
-                <div class="mt-6 flex justify-end space-x-3">
-                    <button type="button" x-on:click="$dispatch('close-modal', 'record-payment')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition">
+                <div class="pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                    <button type="button" x-on:click="$dispatch('close-modal', 'record-payment')" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 mr-3 transition">
                         Cancel
                     </button>
-                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
+                    <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-md shadow-sm text-sm font-medium hover:bg-green-700 transition">
                         Record Payment
                     </button>
                 </div>

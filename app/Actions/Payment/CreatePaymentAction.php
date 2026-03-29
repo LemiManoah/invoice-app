@@ -32,10 +32,9 @@ final readonly class CreatePaymentAction
             ]);
         }
 
-        if ((float) $data['amount'] > (float) $invoice->balance_due) {
-            throw ValidationException::withMessages([
-                'amount' => 'Payment amount cannot exceed the remaining invoice balance.',
-            ]);
+        $paymentAmount = (float) $data['amount'];
+        if ($paymentAmount > (float) $invoice->balance_due) {
+            $data['amount'] = (float) $invoice->balance_due;
         }
 
         return DB::transaction(function () use ($data, $invoice): Payment {

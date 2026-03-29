@@ -8,11 +8,6 @@
                                     :active="request()->routeIs('dashboard*')">Dashboard</x-layouts.sidebar-link>
                             @endif
 
-                            @can('viewAny', \App\Models\Customer::class)
-                                <x-layouts.sidebar-link href="{{ route('customers.index') }}" icon='fas-users'
-                                    :active="request()->routeIs('customers*')">Customers</x-layouts.sidebar-link>
-                            @endcan
-
                             @can('viewAny', \App\Models\Invoice::class)
                                 <x-layouts.sidebar-link href="{{ route('invoices.index') }}" icon='fas-file-invoice-dollar'
                                     :active="request()->routeIs('invoices*')">Invoices</x-layouts.sidebar-link>
@@ -36,6 +31,11 @@
                             @can('viewAny', \App\Models\Expense::class)
                                 <x-layouts.sidebar-link href="{{ route('expenses.index') }}" icon='fas-money-bill-wave'
                                     :active="request()->routeIs('expenses*')">Expenses</x-layouts.sidebar-link>
+                            @endcan
+
+                            @can('viewAny', \App\Models\Customer::class)
+                                <x-layouts.sidebar-link href="{{ route('customers.index') }}" icon='fas-users'
+                                    :active="request()->routeIs('customers*')">Customers</x-layouts.sidebar-link>
                             @endcan
 
                             @can('viewAny', \App\Models\User::class)

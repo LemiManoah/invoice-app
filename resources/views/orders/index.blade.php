@@ -8,6 +8,27 @@
         @endcan
     </div>
 
+    <form action="{{ route('orders.index') }}" method="GET" class="mb-6">
+        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <input type="text" name="search" value="{{ $search }}" placeholder="Search by order #, customer name, email or phone"
+                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                <select name="status" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                    <option value="">All statuses</option>
+                    <option value="draft" @selected($status === 'draft')>Draft</option>
+                    <option value="confirmed" @selected($status === 'confirmed')>Confirmed</option>
+                    <option value="in_cutting" @selected($status === 'in_cutting')>In Cutting</option>
+                    <option value="in_stitching" @selected($status === 'in_stitching')>In Stitching</option>
+                    <option value="in_finishing" @selected($status === 'in_finishing')>In Finishing</option>
+                    <option value="ready" @selected($status === 'ready')>Ready</option>
+                    <option value="delivered" @selected($status === 'delivered')>Delivered</option>
+                    <option value="cancelled" @selected($status === 'cancelled')>Cancelled</option>
+                </select>
+                <button type="submit" class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700 transition text-sm">Filter</button>
+            </div>
+        </div>
+    </form>
+
     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
