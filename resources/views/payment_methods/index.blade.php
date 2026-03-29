@@ -66,14 +66,10 @@
                                         </a>
                                     @endcan
                                     @can('delete', $paymentMethod)
-                                        <form action="{{ route('payment-methods.destroy', $paymentMethod) }}" method="POST" onsubmit="return confirm('Delete this payment method?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="inline-flex items-center rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30">
-                                                Delete
-                                            </button>
-                                        </form>
+                                        <button type="button" @click="$dispatch('open-delete-modal', { url: '{{ route('payment-methods.destroy', $paymentMethod) }}', item: '{{ addslashes($paymentMethod->name) }}' })"
+                                            class="inline-flex items-center rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30">
+                                            Delete
+                                        </button>
                                     @endcan
                                 </div>
                             </td>

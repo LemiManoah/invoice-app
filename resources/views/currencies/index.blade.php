@@ -88,14 +88,10 @@
                                         </a>
                                     @endcan
                                     @can('delete', $currency)
-                                        <form action="{{ route('currencies.destroy', $currency) }}" method="POST" onsubmit="return confirm('Delete this currency?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="inline-flex items-center rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30">
-                                                Delete
-                                            </button>
-                                        </form>
+                                        <button type="button" @click="$dispatch('open-delete-modal', { url: '{{ route('currencies.destroy', $currency) }}', item: '{{ addslashes($currency->code) }}' })"
+                                            class="inline-flex items-center rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30">
+                                            Delete
+                                        </button>
                                     @endcan
                                 </div>
                             </td>

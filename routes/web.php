@@ -57,6 +57,7 @@ Route::middleware(['auth'])->group(function () {
     // Expenses
     Route::resource('expenses', ExpenseController::class)->except(['destroy']);
     Route::post('expenses/{expense}/void', [ExpenseController::class, 'void'])->name('expenses.void');
+    Route::resource('expense-categories', \App\Http\Controllers\ExpenseCategoryController::class)->except(['show']);
 
     // Reports
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');

@@ -36,9 +36,6 @@
                             @can('viewAny', \App\Models\User::class)
                                 <x-layouts.sidebar-link href="{{ route('users.index') }}" icon='fas-user-shield'
                                     :active="request()->routeIs('users*')">Users</x-layouts.sidebar-link>
-                                    
-                                <x-layouts.sidebar-link href="{{ route('roles.index') }}" icon='fas-users-cog'
-                                    :active="request()->routeIs('roles*')">Roles</x-layouts.sidebar-link>
                             @endcan
 
 

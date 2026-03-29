@@ -78,9 +78,9 @@
                             x-transition:leave-start="opacity-100 transform translate-y-0"
                             x-transition:leave-end="opacity-0 transform -translate-y-2"
                             @class([
-                                'mb-6 border-l-4 p-4 rounded-md',
-                                'bg-green-50 dark:bg-green-900 border-green-500' => session('status') || session('success'),
-                                'bg-red-50 dark:bg-red-900 border-red-500' => session('error'),
+                                'mb-6 p-4 rounded-md',
+                                'bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-800' => session('status') || session('success'),
+                                'bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-800' => session('error'),
                             ])>
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
@@ -125,6 +125,8 @@
             </main>
         </div>
     </div>
+    
+    <x-delete-modal />
 </body>
 
 </html>

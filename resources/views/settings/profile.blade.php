@@ -59,12 +59,10 @@
                             <p class="text-gray-600 dark:text-gray-400 mb-4">
                                 {{ __('Delete your account and all of its resources') }}
                             </p>
-                            <form action="{{ route('settings.profile.destroy') }}" method="POST"
-                                onsubmit="return confirm('{{ __('Are you sure you want to delete your account?') }}')">
-                                @csrf
-                                @method('DELETE')
-                                <x-button type="danger">{{ __('Delete account') }}</x-button>
-                            </form>
+                            <button type="button" @click="$dispatch('open-delete-modal', { url: '{{ route('settings.profile.destroy') }}', item: 'your account' })"
+                                class="inline-flex items-center justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition">
+                                {{ __('Delete account') }}
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -23,7 +23,7 @@ final readonly class UserPolicy
         return $user->can('users.create');
     }
 
-    public function update(User $user, User $subject): bool
+    public function update(User $user, ?User $subject = null): bool
     {
         return $user->can('users.update');
     }
@@ -43,8 +43,8 @@ final readonly class UserPolicy
         return $user->is($subject) && $user->can('settings.appearance.update');
     }
 
-    public function delete(User $user, User $subject): bool
+    public function delete(User $user, ?User $subject = null): bool
     {
-        return $user->is($subject);
+        return $user->can('users.delete') || ($subject && $user->is($subject));
     }
 }

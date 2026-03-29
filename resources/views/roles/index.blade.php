@@ -13,23 +13,6 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="mb-6 rounded-md bg-green-50 dark:bg-green-900/30 p-4 border border-green-200 dark:border-green-800">
-            <div class="flex">
-                <div class="flex-shrink-0"><i class="fas fa-check-circle text-green-400"></i></div>
-                <div class="ml-3"><p class="text-sm font-medium text-green-800 dark:text-green-300">{{ session('success') }}</p></div>
-            </div>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="mb-6 rounded-md bg-red-50 dark:bg-red-900/30 p-4 border border-red-200 dark:border-red-800">
-            <div class="flex">
-                <div class="flex-shrink-0"><i class="fas fa-exclamation-circle text-red-400"></i></div>
-                <div class="ml-3"><p class="text-sm font-medium text-red-800 dark:text-red-300">{{ session('error') }}</p></div>
-            </div>
-        </div>
-    @endif
 
     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
         <div class="overflow-x-auto">
@@ -64,13 +47,9 @@
                                     @endcan
                                     @if($role->name !== 'Admin')
                                         @can('users.delete')
-                                            <form action="{{ route('roles.destroy', $role) }}" method="POST" class="inline-block relative ml-2" onsubmit="return confirm('Are you sure you want to delete this role?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
-                                                    Delete
-                                                </button>
-                                            </form>
+                                            <button type="button" @click="$dispatch('open-delete-modal', { url: '{{ route('roles.destroy', $role) }}', item: '{{ addslashes($role->name) }}' })" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 ml-2">
+                                                Delete
+                                            </button>
                                         @endcan
                                     @endif
                                 </div>
