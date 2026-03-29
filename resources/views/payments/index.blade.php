@@ -6,7 +6,7 @@
         </div>
         @can('viewAny', \App\Models\PaymentMethod::class)
             <a href="{{ route('payment-methods.index') }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition sm:w-auto">
-                <i class="fas fa-wallet mr-2 text-gray-400"></i> Manage Methods
+                <i class="fas fa-wallet mr-2 text-gray-400"></i> Payment Methods
             </a>
         @endcan
     </div>

@@ -26,8 +26,8 @@
         <form action="{{ route('invoices.update', $invoice) }}" method="POST">
             @csrf
             @method('PUT')
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div class="lg:col-span-3 space-y-6">
                     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border border-gray-200 dark:border-gray-700">
                         <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Invoice Items</h2>
                         <div class="overflow-x-auto">
@@ -45,12 +45,12 @@
                                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                     <template x-for="(item, index) in items" :key="index">
                                         <tr>
-                                            <td class="px-4 py-2"><input type="text" :name="'items['+index+'][item_name]'" x-model="item.item_name" required class="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm"></td>
+                                            <td class="px-4 py-2"><input type="text" :name="'items['+index+'][item_name]'" x-model="item.item_name" required class="w-64 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm"></td>
                                             <td class="px-4 py-2"><input type="text" :name="'items['+index+'][description]'" x-model="item.description" class="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm"></td>
                                             <td class="px-4 py-2"><input type="number" :name="'items['+index+'][quantity]'" x-model.number="item.quantity" @input="calculateTotals()" required min="1" class="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm text-center"></td>
                                             <td class="px-4 py-2"><input type="number" :name="'items['+index+'][unit_price]'" x-model.number="item.unit_price" @input="calculateTotals()" required step="{{ $currencyStep }}" min="0" class="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm text-right"></td>
                                             <td class="px-4 py-2 text-right text-sm text-gray-900 dark:text-white font-medium"><span x-text="formatCurrency(item.quantity * item.unit_price)"></span></td>
-                                            <td class="px-4 py-2 text-right"><button type="button" @click="removeItem(index)" class="text-red-600 hover:text-red-900"><i class="fas fa-trash"></i></button></td>
+                                            <td class="px-4 py-2 text-right"><button type="button" @click="removeItem(index)" class="text-red-600 hover:text-red-900 p-1" title="Remove item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></td>
                                         </tr>
                                     </template>
                                 </tbody>
