@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\BusinessProfileController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
@@ -83,6 +84,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
     Route::resource('roles', RoleController::class)->except(['show']);
     Route::resource('users', UserController::class)->except(['show', 'destroy']);
+    Route::get('business-profile', [BusinessProfileController::class, 'show'])->name('business-profile.show');
+    Route::get('business-profile/edit', [BusinessProfileController::class, 'edit'])->name('business-profile.edit');
+    Route::post('business-profile', [BusinessProfileController::class, 'store'])->name('business-profile.store');
+    Route::put('business-profile', [BusinessProfileController::class, 'update'])->name('business-profile.update');
+    Route::delete('business-profile', [BusinessProfileController::class, 'destroy'])->name('business-profile.destroy');
 
     // Settings
     Route::get('settings/profile', [Settings\ProfileController::class, 'edit'])->name('settings.profile.edit');

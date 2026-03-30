@@ -7,6 +7,13 @@
     <style>
         body { font-family: Arial, sans-serif; color: #111827; margin: 24px; }
         h1, h2, h3, p { margin: 0; }
+        .document-brand { display: flex; align-items: center; gap: 16px; padding-bottom: 18px; margin-bottom: 24px; border-bottom: 2px solid #0f172a; }
+        .document-brand__logo-wrap { width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .document-brand__logo { max-width: 72px; max-height: 72px; object-fit: contain; }
+        .document-brand__logo-fallback { width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; border-radius: 16px; background: #e2e8f0; color: #0f172a; font-size: 24px; font-weight: 700; }
+        .document-brand__content { display: flex; flex-direction: column; gap: 6px; }
+        .document-brand__name { font-size: 28px; font-weight: 700; color: #0f172a; }
+        .document-brand__meta { font-size: 12px; color: #475569; }
         .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
         .meta { color: #6b7280; font-size: 12px; }
         .actions { margin-bottom: 16px; }
@@ -22,6 +29,7 @@
         .section { margin-top: 24px; }
         .section-title { margin-bottom: 12px; font-size: 16px; font-weight: 700; }
         .muted { color: #6b7280; }
+        .document-footer { margin-top: 28px; padding-top: 14px; border-top: 1px solid #cbd5e1; font-size: 11px; color: #475569; display: flex; flex-wrap: wrap; gap: 8px 14px; }
         @media print {
             .actions { display: none; }
             body { margin: 12px; }
@@ -34,6 +42,10 @@
         <a href="javascript:window.close()">Close</a>
     </div>
 
+    @include('print.partials.business-header')
+
     @yield('content')
+
+    @include('print.partials.business-footer')
 </body>
 </html>

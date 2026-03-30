@@ -23,6 +23,53 @@
                 margin: 20px auto;
                 max-width: 1000px;
             }
+            .document-brand {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                margin-bottom: 24px;
+                padding-bottom: 18px;
+                border-bottom: 2px solid #111827;
+            }
+            .document-brand__logo-wrap {
+                width: 76px;
+                height: 76px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            .document-brand__logo {
+                max-width: 76px;
+                max-height: 76px;
+                object-fit: contain;
+            }
+            .document-brand__logo-fallback {
+                width: 76px;
+                height: 76px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 16px;
+                background: #e5e7eb;
+                color: #111827;
+                font-size: 28px;
+                font-weight: 700;
+            }
+            .document-brand__content {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+            .document-brand__name {
+                font-size: 30px;
+                font-weight: 700;
+                color: #111827;
+            }
+            .document-brand__meta {
+                font-size: 12px;
+                color: #6B7280;
+            }
 
             h4 {
                 margin-top: 0;
@@ -127,6 +174,16 @@
             .cool-gray {
                 color: #6B7280;
             }
+            .document-footer {
+                margin-top: 28px;
+                padding-top: 14px;
+                border-top: 1px solid #d1d5db;
+                font-size: 11px;
+                color: #4b5563;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px 14px;
+            }
 
             /* Print actions */
             .actions { margin-bottom: 16px; font-size: 14px; }
@@ -148,10 +205,7 @@
             <a href="javascript:window.close()">Close</a>
         </div>
 
-        {{-- Header --}}
-        @if(config('app.logo'))
-            <img src="{{ config('app.logo') }}" alt="logo" height="100">
-        @endif
+        @include('print.partials.business-header')
 
         <table class="table mt-5">
             <tbody>
@@ -194,7 +248,7 @@
                 <tr>
                     <td class="px-0">
                         <p class="seller-name">
-                            <strong>{{ config('app.name') }}</strong>
+                            <strong>{{ $businessProfile?->name ?: config('app.name') }}</strong>
                         </p>
                     </td>
                     <td class="border-0"></td>
@@ -319,6 +373,8 @@
                 <strong>Notes</strong>: {!! nl2br(e($invoice->notes)) !!}
             </p>
         @endif
+
+        @include('print.partials.business-footer')
 
         <script type="text/php">
             if (isset($pdf) && $PAGE_COUNT > 1) {

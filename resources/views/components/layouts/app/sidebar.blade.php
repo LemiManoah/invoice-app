@@ -58,6 +58,15 @@
                                 <x-layouts.sidebar-link href="{{ route('audit-logs.index') }}" icon='fas-clock-rotate-left'
                                     :active="request()->routeIs('audit-logs*')">Audit Logs</x-layouts.sidebar-link>
                             @endif
+
+                            @if(auth()->user()?->can('business-profile.view'))
+                                <x-layouts.sidebar-two-level-link-parent title="Settings" icon="fas-gear" :active="request()->routeIs('business-profile*')">
+                                    <x-layouts.sidebar-two-level-link href="{{ route('business-profile.show') }}" icon="fas-building"
+                                        :active="request()->routeIs('business-profile*')">
+                                        Business Profile
+                                    </x-layouts.sidebar-two-level-link>
+                                </x-layouts.sidebar-two-level-link-parent>
+                            @endif
                         </ul>
                     </nav>
                 </div>

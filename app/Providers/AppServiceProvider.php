@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Models\AuditLog;
+use App\Models\BusinessProfile;
 use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\Expense;
@@ -16,6 +17,7 @@ use App\Models\PaymentMethod;
 use App\Models\Receipt;
 use App\Models\User;
 use App\Policies\AuditLogPolicy;
+use App\Policies\BusinessProfilePolicy;
 use App\Policies\CurrencyPolicy;
 use App\Policies\CustomerPolicy;
 use App\Policies\ExpensePolicy;
@@ -39,6 +41,7 @@ final class AppServiceProvider extends ServiceProvider
      */
     protected $policies = [
         Customer::class => CustomerPolicy::class,
+        BusinessProfile::class => BusinessProfilePolicy::class,
         Currency::class => CurrencyPolicy::class,
         Invoice::class => InvoicePolicy::class,
         Payment::class => PaymentPolicy::class,
@@ -56,6 +59,8 @@ final class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $businessProfile = BusinessProfile::query()->first();
+
         View::composer('*', function ($view): void {
             $currencyManager = app(CurrencyManager::class);
 
@@ -63,5 +68,7 @@ final class AppServiceProvider extends ServiceProvider
             $view->with('activeCurrency', $currencyManager->current());
             $view->with('activeCurrencyConfig', $currencyManager->javascriptConfig());
         });
+
+        View::share('businessProfile', $businessProfile);
     }
 }
