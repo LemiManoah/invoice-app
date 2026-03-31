@@ -1,391 +1,276 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>Invoice {{ $invoice->invoice_number }}</title>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head>
+    <title>Invoice {{ $invoice->invoice_number }}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+            color: #111827;
+            background: #fff;
+            padding: 36px;
+            max-width: 860px;
+            margin: 0 auto;
+        }
 
-        <style type="text/css">
-            html {
-                font-family: sans-serif;
-                line-height: 1.15;
-                margin: 0;
-            }
+        /* Print button */
+        .actions { margin-bottom: 20px; }
+        .actions button, .actions a {
+            padding: 8px 14px; border: 0; background: #111827;
+            color: white; text-decoration: none; cursor: pointer;
+            margin-right: 8px; border-radius: 4px; display: inline-block; font-size: 13px;
+        }
+        @media print { .actions { display: none; } body { padding: 20px; } }
 
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-                font-weight: 400;
-                line-height: 1.5;
-                color: #212529;
-                text-align: left;
-                background-color: #fff;
-                font-size: 14px;
-                margin: 20px auto;
-                max-width: 1000px;
-            }
-            .document-brand {
-                display: flex;
-                align-items: center;
-                gap: 16px;
-                margin-bottom: 24px;
-                padding-bottom: 18px;
-                border-bottom: 2px solid #111827;
-            }
-            .document-brand__logo-wrap {
-                width: 76px;
-                height: 76px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-            }
-            .document-brand__logo {
-                max-width: 76px;
-                max-height: 76px;
-                object-fit: contain;
-            }
-            .document-brand__logo-fallback {
-                width: 76px;
-                height: 76px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 16px;
-                background: #e5e7eb;
-                color: #111827;
-                font-size: 28px;
-                font-weight: 700;
-            }
-            .document-brand__content {
-                display: flex;
-                flex-direction: column;
-                gap: 6px;
-            }
-            .document-brand__name {
-                font-size: 30px;
-                font-weight: 700;
-                color: #111827;
-            }
-            .document-brand__meta {
-                font-size: 12px;
-                color: #6B7280;
-            }
+        /* Header: large INVOICE left, logo right */
+        .doc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+        }
+        .doc-title {
+            font-size: 56px;
+            font-weight: 900;
+            color: #111827;
+            line-height: 1;
+            letter-spacing: -1px;
+        }
+        .doc-logo { max-height: 84px; max-width: 180px; object-fit: contain; }
+        .doc-logo-fallback {
+            width: 80px; height: 80px; background: #e5e7eb; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; font-weight: 700; color: #111827;
+        }
 
-            h4 {
-                margin-top: 0;
-                margin-bottom: 0.5rem;
-            }
+        /* FROM / BILL TO / META row */
+        .info-row {
+            display: flex;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 20px;
+            margin-bottom: 28px;
+        }
+        .info-col { flex: 1; padding-right: 20px; }
+        .info-col.text-right { text-align: right; padding-right: 0; }
+        .info-label {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            color: #f97316; letter-spacing: 0.06em; margin-bottom: 7px;
+        }
+        .info-name { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+        .info-detail { font-size: 12px; color: #4b5563; margin-bottom: 2px; line-height: 1.5; }
+        .meta-line { font-size: 12px; margin-bottom: 4px; }
+        .meta-line strong { font-weight: 700; }
+        .status-badge {
+            display: inline-block; margin-top: 6px;
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: #6b7280;
+        }
 
-            p {
-                margin-top: 0;
-                margin-bottom: 1rem;
-            }
+        /* Items table */
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { background: #f97316; }
+        thead th {
+            padding: 10px 12px; color: #fff;
+            font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+            text-align: left;
+        }
+        thead th.right { text-align: right; }
+        thead th.center { text-align: center; }
+        tbody tr { border-bottom: 1px solid #e5e7eb; }
+        tbody td { padding: 11px 12px; font-size: 13px; vertical-align: top; }
+        tbody td.right { text-align: right; }
+        tbody td.center { text-align: center; }
+        .item-desc { color: #6b7280; font-size: 11px; margin-top: 3px; }
 
-            strong {
-                font-weight: bolder;
-            }
+        /* Summary rows */
+        .summary-td { padding: 5px 12px; font-size: 13px; }
+        .summary-label { text-align: right; color: #4b5563; }
+        .summary-value { text-align: right; font-weight: 600; min-width: 140px; }
+        .summary-total .summary-label,
+        .summary-total .summary-value { font-weight: 700; font-size: 13px; }
 
-            img {
-                vertical-align: middle;
-                border-style: none;
-            }
+        /* Balance due */
+        .balance-due-label {
+            background: #111827; color: #f97316;
+            font-size: 14px; font-weight: 800; text-transform: uppercase;
+            text-align: right; padding: 12px;
+        }
+        .balance-due-value {
+            background: #111827; color: #f97316;
+            font-size: 14px; font-weight: 800;
+            text-align: right; padding: 12px;
+        }
 
-            table {
-                border-collapse: collapse;
-            }
+        /* Notes */
+        .notes { margin-top: 24px; font-size: 12px; color: #4b5563; line-height: 1.6; }
+        .notes strong { color: #111827; }
 
-            th {
-                text-align: inherit;
-            }
+        /* Signature */
+        .signature-section { margin-top: 40px; display: flex; justify-content: flex-end; }
+        .signature-img { max-height: 64px; max-width: 180px; object-fit: contain; display: block; margin: 0 auto 6px; }
+        .signature-line { border-top: 1px solid #111827; padding-top: 4px; font-size: 11px; color: #4b5563; width: 180px; text-align: center; }
 
-            h4, .h4 {
-                margin-bottom: 0.5rem;
-                font-weight: 500;
-                line-height: 1.2;
-            }
+        /* Footer */
+        .document-footer {
+            margin-top: 28px; padding-top: 12px;
+            border-top: 1px solid #d1d5db;
+            font-size: 11px; color: #4b5563;
+            display: flex; flex-wrap: wrap; gap: 6px 14px;
+        }
+    </style>
+</head>
+<body>
 
-            h4, .h4 {
-                font-size: 1.5rem;
-            }
+<div class="actions">
+    <button type="button" onclick="window.print()">Print</button>
+    <a href="javascript:window.close()">Close</a>
+</div>
 
-            .table {
-                width: 100%;
-                margin-bottom: 1rem;
-                color: #212529;
-            }
+{{-- Header --}}
+<div class="doc-header">
+    <div class="doc-title">INVOICE</div>
+    <div>
+        @if($businessProfile?->logo_path)
+            <img src="{{ \Illuminate\Support\Facades\Storage::url($businessProfile->logo_path) }}" alt="Logo" class="doc-logo">
+        @else
+            <div class="doc-logo-fallback">
+                {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($businessProfile?->name ?: config('app.name'), 0, 2)) }}
+            </div>
+        @endif
+    </div>
+</div>
 
-            .table th,
-            .table td {
-                padding: 0.75rem;
-                vertical-align: top;
-            }
+{{-- FROM / BILL TO / META --}}
+<div class="info-row">
+    <div class="info-col">
+        <div class="info-label">Invoice From:</div>
+        @if($businessProfile)
+            <div class="info-name">{{ $businessProfile->name }}</div>
+            @if($businessProfile->address)<div class="info-detail">{{ $businessProfile->address }}</div>@endif
+            @if($businessProfile->contacts)<div class="info-detail">{{ $businessProfile->contacts }}</div>@endif
+            @if($businessProfile->email)<div class="info-detail">{{ $businessProfile->email }}</div>@endif
+            @if($businessProfile->location)<div class="info-detail">{{ $businessProfile->location }}</div>@endif
+        @endif
+    </div>
+    <div class="info-col">
+        <div class="info-label">Bill To:</div>
+        <div class="info-name">{{ $invoice->customer->full_name }}</div>
+        @if($invoice->customer->phone)<div class="info-detail">{{ $invoice->customer->phone }}</div>@endif
+        @if($invoice->customer->address)<div class="info-detail">{{ $invoice->customer->address }}</div>@endif
+        @if($invoice->customer->email)<div class="info-detail">{{ $invoice->customer->email }}</div>@endif
+    </div>
+    <div class="info-col text-right">
+        <div class="meta-line">Number: <strong>{{ $invoice->invoice_number }}</strong></div>
+        <div class="meta-line">Date: <strong>{{ $invoice->invoice_date->format('M d, Y') }}</strong></div>
+        <div class="meta-line">Due date: <strong>{{ $invoice->due_date ? $invoice->due_date->format('M d, Y') : 'On receipt' }}</strong></div>
+        @if($invoice->status)
+            <div class="status-badge">{{ ucfirst(str_replace('_', ' ', $invoice->status)) }}</div>
+        @endif
+    </div>
+</div>
 
-            .table.table-items td {
-                border-top: 1px solid #dee2e6;
-            }
+{{-- Items --}}
+<table>
+    <thead>
+        <tr>
+            <th>Description</th>
+            <th class="center" style="width:80px;">Quantity</th>
+            <th class="right" style="width:130px;">Unit Price</th>
+            <th class="right" style="width:140px;">Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($invoice->items as $item)
+        <tr>
+            <td>
+                {{ $item->item_name }}
+                @if($item->description)<div class="item-desc">{{ $item->description }}</div>@endif
+            </td>
+            <td class="center">{{ $item->quantity }}</td>
+            <td class="right">{{ $currencyFormatter->formatValue($item->unit_price, 2, $invoice->currency) }}</td>
+            <td class="right">{{ $currencyFormatter->formatValue($item->line_total, 2, $invoice->currency) }}</td>
+        </tr>
+        @endforeach
 
-            .table thead th {
-                vertical-align: bottom;
-                border-bottom: 2px solid #dee2e6;
-            }
+        {{-- Gap before totals --}}
+        <tr style="border: none;">
+            <td colspan="4" style="padding: 10px; border: none;"></td>
+        </tr>
 
-            .mt-5 {
-                margin-top: 3rem !important;
-            }
+        {{-- Subtotal --}}
+        <tr style="border: none;">
+            <td colspan="2" style="border: none;"></td>
+            <td class="summary-td summary-label" style="border-top: 1px solid #e5e7eb;">SUBTOTAL:</td>
+            <td class="summary-td summary-value" style="border-top: 1px solid #e5e7eb;">{{ $currencyFormatter->formatValue($invoice->subtotal_amount, 2, $invoice->currency) }}</td>
+        </tr>
 
-            .pr-0,
-            .px-0 {
-                padding-right: 0 !important;
-            }
-
-            .pl-0,
-            .px-0 {
-                padding-left: 0 !important;
-            }
-
-            .text-right {
-                text-align: right !important;
-            }
-
-            .text-center {
-                text-align: center !important;
-            }
-
-            .text-uppercase {
-                text-transform: uppercase !important;
-            }
-            * {
-                font-family: "DejaVu Sans", sans-serif;
-            }
-            body, h1, h2, h3, h4, h5, h6, table, th, tr, td, p, div {
-                line-height: 1.1;
-            }
-            .party-header {
-                font-size: 1.5rem;
-                font-weight: 400;
-            }
-            .total-amount {
-                font-size: 12px;
-                font-weight: 700;
-            }
-            .border-0 {
-                border: none !important;
-            }
-            .cool-gray {
-                color: #6B7280;
-            }
-            .document-footer {
-                margin-top: 28px;
-                padding-top: 14px;
-                border-top: 1px solid #d1d5db;
-                font-size: 11px;
-                color: #4b5563;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px 14px;
-            }
-
-            /* Print actions */
-            .actions { margin-bottom: 16px; font-size: 14px; }
-            .actions button, .actions a { 
-                padding: 8px 12px; border: 0; background: #111827; 
-                color: white; text-decoration: none; cursor: pointer; 
-                margin-right: 8px; border-radius: 4px; display: inline-block;
-            }
-            @media print {
-                .actions { display: none; }
-                body { margin: 12px; }
-            }
-        </style>
-    </head>
-
-    <body>
-        <div class="actions">
-            <button type="button" onclick="window.print()">Print</button>
-            <a href="javascript:window.close()">Close</a>
-        </div>
-
-        @include('print.partials.business-header')
-
-        <table class="table mt-5">
-            <tbody>
-                <tr>
-                    <td class="border-0 pl-0" width="70%">
-                        <h4 class="text-uppercase">
-                            <strong>Invoice {{ $invoice->invoice_number }}</strong>
-                        </h4>
-                    </td>
-                    <td class="border-0 pl-0">
-                        @if($invoice->status)
-                            <h4 class="text-uppercase cool-gray">
-                                <strong>{{ ucfirst(str_replace('_', ' ', $invoice->status)) }}</strong>
-                            </h4>
-                        @endif
-                        <p>Invoice Number: <strong>{{ $invoice->invoice_number }}</strong></p>
-                        <p>Date: <strong>{{ $invoice->invoice_date->format('M d, Y') }}</strong></p>
-                        @if($invoice->due_date)
-                            <p>Due Date: <strong>{{ $invoice->due_date->format('M d, Y') }}</strong></p>
-                        @endif
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
-        {{-- Seller - Buyer --}}
-        <table class="table">
-            <thead>
-                <tr>
-                    <th class="border-0 pl-0 party-header" width="48.5%">
-                        From
-                    </th>
-                    <th class="border-0" width="3%"></th>
-                    <th class="border-0 pl-0 party-header">
-                        Bill To
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="px-0">
-                        <p class="seller-name">
-                            <strong>{{ $businessProfile?->name ?: config('app.name') }}</strong>
-                        </p>
-                    </td>
-                    <td class="border-0"></td>
-                    <td class="px-0">
-                        @if($invoice->customer->full_name)
-                            <p class="buyer-name">
-                                <strong>{{ $invoice->customer->full_name }}</strong>
-                            </p>
-                        @endif
-
-                        @if($invoice->customer->address)
-                            <p class="buyer-address">
-                                Address: {{ $invoice->customer->address }}
-                            </p>
-                        @endif
-
-                        @if($invoice->customer->phone)
-                            <p class="buyer-phone">
-                                Phone: {{ $invoice->customer->phone }}
-                            </p>
-                        @endif
-
-                        @if($invoice->customer->email)
-                            <p class="buyer-email">
-                                Email: {{ $invoice->customer->email }}
-                            </p>
-                        @endif
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
-        {{-- Table --}}
-        <table class="table table-items">
-            <thead>
-                <tr>
-                    <th scope="col" class="border-0 pl-0">Description</th>
-                    <th scope="col" class="text-center border-0">Quantity</th>
-                    <th scope="col" class="text-right border-0">Price</th>
-                    <th scope="col" class="text-right border-0 pr-0">Line Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{-- Items --}}
-                @foreach($invoice->items as $item)
-                <tr>
-                    <td class="pl-0">
-                        {{ $item->item_name }}
-
-                        @if($item->description)
-                            <p class="cool-gray" style="margin-top: 0.25rem; font-size: 0.85em;">{{ $item->description }}</p>
-                        @endif
-                    </td>
-                    <td class="text-center">{{ $item->quantity }}</td>
-                    <td class="text-right">
-                        {{ $currencyFormatter->formatValue($item->unit_price, 2, $invoice->currency) }}
-                    </td>
-                    <td class="text-right pr-0">
-                        {{ $currencyFormatter->formatValue($item->line_total, 2, $invoice->currency) }}
-                    </td>
-                </tr>
-                @endforeach
-                {{-- Summary --}}
-                <tr>
-                    <td colspan="2" class="border-0"></td>
-                    <td class="text-right pl-0">Subtotal</td>
-                    <td class="text-right pr-0">
-                        {{ $currencyFormatter->formatValue($invoice->subtotal_amount, 2, $invoice->currency) }}
-                    </td>
-                </tr>
-                
-                @if($invoice->discount_amount > 0)
-                    <tr>
-                        <td colspan="2" class="border-0"></td>
-                        <td class="text-right pl-0">Discount</td>
-                        <td class="text-right pr-0" style="color: red;">
-                            -{{ $currencyFormatter->formatValue($invoice->discount_amount, 2, $invoice->currency) }}
-                        </td>
-                    </tr>
-                @endif
-                
-                @if($invoice->tax_amount > 0)
-                    <tr>
-                        <td colspan="2" class="border-0"></td>
-                        <td class="text-right pl-0">Tax</td>
-                        <td class="text-right pr-0">
-                            {{ $currencyFormatter->formatValue($invoice->tax_amount, 2, $invoice->currency) }}
-                        </td>
-                    </tr>
-                @endif
-                
-                <tr>
-                    <td colspan="2" class="border-0"></td>
-                    <td class="text-right pl-0"><strong>Invoice Total</strong></td>
-                    <td class="text-right pr-0 total-amount">
-                        {{ $currencyFormatter->formatValue($invoice->total_amount, 2, $invoice->currency) }}
-                    </td>
-                </tr>
-
-                @if($invoice->amount_paid > 0)
-                    <tr>
-                        <td colspan="2" class="border-0"></td>
-                        <td class="text-right pl-0">Amount Paid</td>
-                        <td class="text-right pr-0" style="color: green;">
-                            {{ $currencyFormatter->formatValue($invoice->amount_paid, 2, $invoice->currency) }}
-                        </td>
-                    </tr>
-                @endif
-
-                <tr>
-                    <td colspan="2" class="border-0"></td>
-                    <td class="text-right pl-0"><strong>Balance Due</strong></td>
-                    <td class="text-right pr-0 total-amount" style="color: #dc2626;">
-                        {{ $currencyFormatter->formatValue($invoice->balance_due, 2, $invoice->currency) }}
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
-        @if($invoice->notes)
-            <p>
-                <strong>Notes</strong>: {!! nl2br(e($invoice->notes)) !!}
-            </p>
+        @if($invoice->discount_amount > 0)
+        <tr style="border: none;">
+            <td colspan="2" style="border: none;"></td>
+            <td class="summary-td summary-label">DISCOUNT:</td>
+            <td class="summary-td summary-value" style="color: #dc2626;">-{{ $currencyFormatter->formatValue($invoice->discount_amount, 2, $invoice->currency) }}</td>
+        </tr>
         @endif
 
-        @include('print.partials.business-footer')
+        @if($invoice->tax_amount > 0)
+        <tr style="border: none;">
+            <td colspan="2" style="border: none;"></td>
+            <td class="summary-td summary-label">TAX:</td>
+            <td class="summary-td summary-value">{{ $currencyFormatter->formatValue($invoice->tax_amount, 2, $invoice->currency) }}</td>
+        </tr>
+        @endif
 
-        <script type="text/php">
-            if (isset($pdf) && $PAGE_COUNT > 1) {
-                $text = "Page {PAGE_NUM} / {PAGE_COUNT}";
-                $size = 10;
-                $font = $fontMetrics->getFont("Verdana");
-                $width = $fontMetrics->get_text_width($text, $font, $size) / 2;
-                $x = ($pdf->get_width() - $width);
-                $y = $pdf->get_height() - 35;
-                $pdf->page_text($x, $y, $text, $font, $size);
-            }
-        </script>
-    </body>
+        <tr class="summary-total" style="border: none;">
+            <td colspan="2" style="border: none;"></td>
+            <td class="summary-td summary-label">TOTAL:</td>
+            <td class="summary-td summary-value">{{ $currencyFormatter->formatValue($invoice->total_amount, 2, $invoice->currency) }}</td>
+        </tr>
+
+        @if($invoice->amount_paid > 0)
+        <tr style="border: none;">
+            <td colspan="2" style="border: none;"></td>
+            <td class="summary-td summary-label">PAID:</td>
+            <td class="summary-td summary-value" style="color: #16a34a;">{{ $currencyFormatter->formatValue($invoice->amount_paid, 2, $invoice->currency) }}</td>
+        </tr>
+        @endif
+
+        {{-- Balance Due --}}
+        <tr style="border: none;">
+            <td colspan="2" style="border: none;"></td>
+            <td class="balance-due-label">BALANCE DUE</td>
+            <td class="balance-due-value">{{ $currencyFormatter->formatValue($invoice->balance_due, 2, $invoice->currency) }}</td>
+        </tr>
+    </tbody>
+</table>
+
+@if($invoice->notes)
+    <div class="notes"><strong>Notes:</strong> {!! nl2br(e($invoice->notes)) !!}</div>
+@endif
+
+@if($businessProfile?->signature_path)
+    <div class="signature-section">
+        <div>
+            <img src="{{ \Illuminate\Support\Facades\Storage::url($businessProfile->signature_path) }}" alt="Signature" class="signature-img">
+            <div class="signature-line">Authorised Signature</div>
+        </div>
+    </div>
+@endif
+
+@include('print.partials.business-footer')
+
+<script type="text/php">
+    if (isset($pdf) && $PAGE_COUNT > 1) {
+        $text = "Page {PAGE_NUM} / {PAGE_COUNT}";
+        $size = 10;
+        $font = $fontMetrics->getFont("Verdana");
+        $width = $fontMetrics->get_text_width($text, $font, $size) / 2;
+        $x = ($pdf->get_width() - $width);
+        $y = $pdf->get_height() - 35;
+        $pdf->page_text($x, $y, $text, $font, $size);
+    }
+</script>
+</body>
 </html>

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Models\AuditLog;
+use App\Models\Quotation;
+use App\Policies\QuotationPolicy;
 use App\Models\BusinessProfile;
 use App\Models\Currency;
 use App\Models\Customer;
@@ -51,6 +53,7 @@ final class AppServiceProvider extends ServiceProvider
         Order::class => OrderPolicy::class,
         Measurement::class => MeasurementPolicy::class,
         AuditLog::class => AuditLogPolicy::class,
+        Quotation::class => QuotationPolicy::class,
         User::class => UserPolicy::class,
     ];
 

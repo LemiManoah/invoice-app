@@ -8,6 +8,11 @@
                                     :active="request()->routeIs('dashboard*')">Dashboard</x-layouts.sidebar-link>
                             @endif
 
+                            @can('viewAny', \App\Models\Quotation::class)
+                                <x-layouts.sidebar-link href="{{ route('quotations.index') }}" icon='fas-file-alt'
+                                    :active="request()->routeIs('quotations*')">Quotations</x-layouts.sidebar-link>
+                            @endcan
+
                             @can('viewAny', \App\Models\Invoice::class)
                                 <x-layouts.sidebar-link href="{{ route('invoices.index') }}" icon='fas-file-invoice-dollar'
                                     :active="request()->routeIs('invoices*')">Invoices</x-layouts.sidebar-link>

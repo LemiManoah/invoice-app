@@ -1,4 +1,28 @@
 <x-layouts.app title="Dashboard">
+    {{-- Quick actions --}}
+    @if(auth()->user()?->can('orders.create') || auth()->user()?->can('invoices.create') || auth()->user()?->can('quotations.create'))
+        <div class="mb-6 flex flex-wrap gap-3">
+            @can('create', \App\Models\Order::class)
+                <a href="{{ route('orders.create') }}"
+                    class="inline-flex items-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700">
+                    <i class="fas fa-cut mr-2"></i> New Order
+                </a>
+            @endcan
+            @can('create', \App\Models\Quotation::class)
+                <a href="{{ route('quotations.create') }}"
+                    class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700">
+                    <i class="fas fa-file-alt mr-2"></i> New Quotation
+                </a>
+            @endcan
+            @can('create', \App\Models\Invoice::class)
+                <a href="{{ route('invoices.create') }}"
+                    class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700">
+                    <i class="fas fa-file-invoice-dollar mr-2"></i> New Invoice
+                </a>
+            @endcan
+        </div>
+    @endif
+
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
 
         <!-- Invoices Today -->

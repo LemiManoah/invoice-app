@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\BusinessProfileController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\CustomerController;
@@ -22,7 +23,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route(auth()->check() ? 'dashboard' : 'login');
 })->name('home');
 
 Route::get('dashboard', [DashboardController::class, 'index'])
@@ -38,6 +39,13 @@ Route::middleware(['auth'])->group(function () {
 
     // Orders
     Route::resource('orders', OrderController::class);
+
+    // Quotations
+    Route::resource('quotations', QuotationController::class)->except(['show']);
+    Route::get('quotations/{quotation}', [QuotationController::class, 'show'])->name('quotations.show');
+    Route::post('quotations/{quotation}/send', [QuotationController::class, 'send'])->name('quotations.send');
+    Route::post('quotations/{quotation}/convert', [QuotationController::class, 'convert'])->name('quotations.convert');
+    Route::get('quotations/{quotation}/print', [QuotationController::class, 'print'])->name('quotations.print');
 
     // Invoices
     Route::resource('invoices', InvoiceController::class)->except(['destroy']);
