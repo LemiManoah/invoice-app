@@ -220,61 +220,224 @@
                     <div class="flex justify-between items-center">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-white">Measurement History</h3>
                         @can('create', \App\Models\Measurement::class)
-                            <a href="{{ route('customers.measurements.create', $customer) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 text-sm font-medium">
-                                <i class="fas fa-plus mr-1"></i> New Measurements
+                            <a href="{{ route('customers.measurements.create', $customer) }}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition">
+                                <i class="fas fa-plus"></i> New Measurements
                             </a>
                         @endcan
                     </div>
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-900/50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Date</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Neck</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Chest</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Waist</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                @forelse($customer->measurements as $measurement)
+
+                    @php
+                        // Collect the most recent current measurement per piece across all current records
+                        $currentMeasurements = $customer->measurements
+                            ->where('is_current', true)
+                            ->sortByDesc('measurement_date');
+
+                        $pieceMap = []; // piece => Measurement record
+                        foreach ($currentMeasurements as $m) {
+                            if ($m->hasJacket() && !isset($pieceMap['Jacket']))    $pieceMap['Jacket']    = $m;
+                            if ($m->hasTrouser() && !isset($pieceMap['Trouser']))  $pieceMap['Trouser']   = $m;
+                            if ($m->hasWaistcoat() && !isset($pieceMap['Waistcoat'])) $pieceMap['Waistcoat'] = $m;
+                            if ($m->hasSkirt() && !isset($pieceMap['Skirt']))      $pieceMap['Skirt']     = $m;
+                            if ($m->hasShirt() && !isset($pieceMap['Shirt']))      $pieceMap['Shirt']     = $m;
+                        }
+                    @endphp
+
+                    @if(!empty($pieceMap))
+                        <div class="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 font-medium">Current Measurements</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Most recent per piece</span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                @if(isset($pieceMap['Jacket']))
+                                    @php $m = $pieceMap['Jacket']; @endphp
+                                    <div class="bg-white dark:bg-gray-800 rounded-md p-3 border border-gray-100 dark:border-gray-700">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h4 class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Jacket</h4>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-xs text-gray-400">{{ $m->measurement_date?->format('M d, Y') }}</span>
+                                                @can('update', $m)
+                                                    <a href="{{ route('measurements.edit', $m) }}" class="text-blue-500 hover:text-blue-700 text-xs"><i class="fas fa-edit"></i></a>
+                                                @endcan
+                                            </div>
+                                        </div>
+                                        <dl class="space-y-1">
+                                            @foreach(['jacket_shoulder'=>'Shoulder','jacket_chest'=>'Chest','jacket_stomach_waist'=>'Stomach','jacket_sleeve'=>'Sleeve','jacket_length'=>'Length','jacket_biceps'=>'Biceps','jacket_wrist'=>'Wrist','jacket_lower_arm'=>'Lower Arm','jacket_hip_line'=>'Hip Line'] as $f=>$l)
+                                                @if($m->{$f})
+                                                    <div class="flex justify-between text-xs">
+                                                        <dt class="text-gray-500 dark:text-gray-400">{{ $l }}</dt>
+                                                        <dd class="font-medium text-gray-900 dark:text-white">{{ $m->{$f} }}"</dd>
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        </dl>
+                                    </div>
+                                @endif
+
+                                @if(isset($pieceMap['Trouser']))
+                                    @php $m = $pieceMap['Trouser']; @endphp
+                                    <div class="bg-white dark:bg-gray-800 rounded-md p-3 border border-gray-100 dark:border-gray-700">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h4 class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Trouser</h4>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-xs text-gray-400">{{ $m->measurement_date?->format('M d, Y') }}</span>
+                                                @can('update', $m)
+                                                    <a href="{{ route('measurements.edit', $m) }}" class="text-blue-500 hover:text-blue-700 text-xs"><i class="fas fa-edit"></i></a>
+                                                @endcan
+                                            </div>
+                                        </div>
+                                        <dl class="space-y-1">
+                                            @foreach(['trouser_waist'=>'Waist','trouser_thigh_cuff'=>'Thigh Cuff','trouser_length_fit'=>'Length Fit','trouser_ankle_fit'=>'Ankle/Hem','trouser_knee_fit'=>'Knee','trouser_fly_fit'=>'Fly','trouser_hips'=>'Hips'] as $f=>$l)
+                                                @if($m->{$f})
+                                                    <div class="flex justify-between text-xs">
+                                                        <dt class="text-gray-500 dark:text-gray-400">{{ $l }}</dt>
+                                                        <dd class="font-medium text-gray-900 dark:text-white">{{ $m->{$f} }}"</dd>
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        </dl>
+                                    </div>
+                                @endif
+
+                                @if(isset($pieceMap['Waistcoat']))
+                                    @php $m = $pieceMap['Waistcoat']; @endphp
+                                    <div class="bg-white dark:bg-gray-800 rounded-md p-3 border border-gray-100 dark:border-gray-700">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h4 class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Waistcoat</h4>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-xs text-gray-400">{{ $m->measurement_date?->format('M d, Y') }}</span>
+                                                @can('update', $m)
+                                                    <a href="{{ route('measurements.edit', $m) }}" class="text-blue-500 hover:text-blue-700 text-xs"><i class="fas fa-edit"></i></a>
+                                                @endcan
+                                            </div>
+                                        </div>
+                                        <dl class="space-y-1">
+                                            @foreach(['waistcoat_chest'=>'Chest','waistcoat_waist'=>'Waist','waistcoat_length'=>'Length'] as $f=>$l)
+                                                @if($m->{$f})
+                                                    <div class="flex justify-between text-xs">
+                                                        <dt class="text-gray-500 dark:text-gray-400">{{ $l }}</dt>
+                                                        <dd class="font-medium text-gray-900 dark:text-white">{{ $m->{$f} }}"</dd>
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        </dl>
+                                    </div>
+                                @endif
+
+                                @if(isset($pieceMap['Skirt']))
+                                    @php $m = $pieceMap['Skirt']; @endphp
+                                    <div class="bg-white dark:bg-gray-800 rounded-md p-3 border border-pink-100 dark:border-pink-900/30">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h4 class="text-xs font-semibold text-pink-700 dark:text-pink-400 uppercase tracking-wider">Skirt</h4>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-xs text-gray-400">{{ $m->measurement_date?->format('M d, Y') }}</span>
+                                                @can('update', $m)
+                                                    <a href="{{ route('measurements.edit', $m) }}" class="text-blue-500 hover:text-blue-700 text-xs"><i class="fas fa-edit"></i></a>
+                                                @endcan
+                                            </div>
+                                        </div>
+                                        <dl class="space-y-1">
+                                            @foreach(['skirt_waist'=>'Waist','skirt_hip_line'=>'Hip Line','skirt_full_length'=>'Full Length'] as $f=>$l)
+                                                @if($m->{$f})
+                                                    <div class="flex justify-between text-xs">
+                                                        <dt class="text-gray-500 dark:text-gray-400">{{ $l }}</dt>
+                                                        <dd class="font-medium text-gray-900 dark:text-white">{{ $m->{$f} }}"</dd>
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        </dl>
+                                    </div>
+                                @endif
+
+                                @if(isset($pieceMap['Shirt']))
+                                    @php $m = $pieceMap['Shirt']; @endphp
+                                    <div class="bg-white dark:bg-gray-800 rounded-md p-3 border border-gray-100 dark:border-gray-700">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h4 class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Shirt</h4>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-xs text-gray-400">{{ $m->measurement_date?->format('M d, Y') }}</span>
+                                                @can('update', $m)
+                                                    <a href="{{ route('measurements.edit', $m) }}" class="text-blue-500 hover:text-blue-700 text-xs"><i class="fas fa-edit"></i></a>
+                                                @endcan
+                                            </div>
+                                        </div>
+                                        <dl class="space-y-1">
+                                            @foreach(['shirt_chest'=>'Chest','shirt_waist'=>'Waist','shirt_shoulder'=>'Shoulder','shirt_full_length'=>'Length','shirt_bottom_cut'=>'Bottom/Cut'] as $f=>$l)
+                                                @if($m->{$f})
+                                                    <div class="flex justify-between text-xs">
+                                                        <dt class="text-gray-500 dark:text-gray-400">{{ $l }}</dt>
+                                                        <dd class="font-medium text-gray-900 dark:text-white">{{ $m->{$f} }}"</dd>
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        </dl>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($customer->measurements->count() > 1 || ($customer->measurements->count() === 1 && !$currentMeasurement))
+                        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700">
+                            <div class="px-6 py-3 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+                                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">All Records</span>
+                            </div>
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-900/50">
                                     <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                            {{ $measurement->measurement_date->format('M d, Y') }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            {{ $measurement->neck ?? '-' }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            {{ $measurement->chest ?? '-' }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            {{ $measurement->waist ?? '-' }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            @if($measurement->is_current)
-                                                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                                                    Current
-                                                </span>
-                                            @endif
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right">
-                                            @can('update', $measurement)
-                                                <a href="{{ route('measurements.edit', $measurement) }}" class="text-yellow-600 hover:text-yellow-900 mr-3">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                            @endcan
-                                        </td>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Date</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Pieces Measured</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Action</th>
                                     </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">No measurements found.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    @foreach($customer->measurements->sortByDesc('measurement_date') as $measurement)
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
+                                            <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                {{ $measurement->measurement_date?->format('M d, Y') }}
+                                            </td>
+                                            <td class="px-6 py-3">
+                                                <div class="flex flex-wrap gap-1">
+                                                    @forelse($measurement->pieces() as $piece)
+                                                        <span class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 {{ $piece === 'Skirt' ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300' : '' }}">
+                                                            {{ $piece }}
+                                                        </span>
+                                                    @empty
+                                                        <span class="text-xs text-gray-400">—</span>
+                                                    @endforelse
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-3 whitespace-nowrap">
+                                                @if($measurement->is_current)
+                                                    <span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Current</span>
+                                                @endif
+                                            </td>
+                                            <td class="px-6 py-3 whitespace-nowrap text-sm text-right">
+                                                @can('update', $measurement)
+                                                    <a href="{{ route('measurements.edit', $measurement) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 text-xs font-medium">
+                                                        <i class="fas fa-edit mr-1"></i> Edit
+                                                    </a>
+                                                @endcan
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+
+                    @if($customer->measurements->isEmpty())
+                        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-8 border border-gray-100 dark:border-gray-700 text-center">
+                            <i class="fas fa-ruler-combined text-3xl text-gray-300 dark:text-gray-600 mb-3"></i>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">No measurements recorded yet.</p>
+                            @can('create', \App\Models\Measurement::class)
+                                <a href="{{ route('customers.measurements.create', $customer) }}" class="mt-3 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400">
+                                    <i class="fas fa-plus"></i> Record first measurements
+                                </a>
+                            @endcan
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Payments Tab -->

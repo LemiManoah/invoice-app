@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Actions\Customer\CreateCustomerAction;
 use App\Actions\Customer\DeleteCustomerAction;
 use App\Actions\Customer\UpdateCustomerAction;
+use App\Actions\Measurement\CreateMeasurementAction;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
@@ -57,7 +58,7 @@ final readonly class CustomerController extends Controller implements HasMiddlew
         return view('customers.create');
     }
 
-    public function store(StoreCustomerRequest $request, CreateCustomerAction $action): RedirectResponse
+    public function store(StoreCustomerRequest $request, CreateCustomerAction $action, CreateMeasurementAction $measurementAction): RedirectResponse
     {
         $this->authorize('create', Customer::class);
 
@@ -66,6 +67,19 @@ final readonly class CustomerController extends Controller implements HasMiddlew
         $customer->update([
             'customer_code' => 'CUST-'.str_pad((string) $customer->id, 5, '0', STR_PAD_LEFT),
         ]);
+
+        if ($request->boolean('record_measurements') && $request->filled('measurement_date')) {
+            $measurementAction->handle($customer, $request->only([
+                'jacket_shoulder', 'jacket_chest', 'jacket_stomach_waist', 'jacket_sleeve',
+                'jacket_length', 'jacket_biceps', 'jacket_wrist', 'jacket_lower_arm', 'jacket_hip_line',
+                'trouser_waist', 'trouser_thigh_cuff', 'trouser_length_fit', 'trouser_ankle_fit',
+                'trouser_knee_fit', 'trouser_fly_fit', 'trouser_hips',
+                'waistcoat_chest', 'waistcoat_waist', 'waistcoat_length',
+                'skirt_waist', 'skirt_hip_line', 'skirt_full_length',
+                'shirt_chest', 'shirt_waist', 'shirt_shoulder', 'shirt_full_length', 'shirt_bottom_cut',
+                'measurement_date', 'is_current', 'fitting_notes',
+            ]));
+        }
 
         return to_route('customers.show', $customer)
             ->with('success', 'Customer created successfully.');

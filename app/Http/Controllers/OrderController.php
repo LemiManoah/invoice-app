@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\Measurement\CreateMeasurementAction;
 use App\Actions\Order\CreateOrderAction;
 use App\Actions\Order\DeleteOrderAction;
 use App\Actions\Order\UpdateOrderAction;
@@ -62,7 +63,9 @@ final readonly class OrderController extends Controller implements HasMiddleware
     {
         $this->authorize('create', Order::class);
 
-        $customers = Customer::query()->orderBy('full_name')->get();
+        $customers = Customer::query()->orderBy('full_name')
+            ->with(['measurements' => fn ($q) => $q->where('is_current', true)->latest()])
+            ->get();
         $currencies = Currency::active()->ordered()->get();
         $products = Product::query()
             ->where('is_active', true)
@@ -73,11 +76,24 @@ final readonly class OrderController extends Controller implements HasMiddleware
         return view('orders.create', compact('customers', 'currencies', 'products', 'selected_customer_id'));
     }
 
-    public function store(StoreOrderRequest $request, CreateOrderAction $action): RedirectResponse
+    public function store(StoreOrderRequest $request, CreateOrderAction $action, CreateMeasurementAction $measurementAction): RedirectResponse
     {
         $this->authorize('create', Order::class);
 
         $order = $action->handle($request->validated());
+
+        if ($request->boolean('record_measurements') && $request->filled('measurement_date') && $order->customer_id) {
+            $measurementAction->handle($order->customer, $request->only([
+                'jacket_shoulder', 'jacket_chest', 'jacket_stomach_waist', 'jacket_sleeve',
+                'jacket_length', 'jacket_biceps', 'jacket_wrist', 'jacket_lower_arm', 'jacket_hip_line',
+                'trouser_waist', 'trouser_thigh_cuff', 'trouser_length_fit', 'trouser_ankle_fit',
+                'trouser_knee_fit', 'trouser_fly_fit', 'trouser_hips',
+                'waistcoat_chest', 'waistcoat_waist', 'waistcoat_length',
+                'skirt_waist', 'skirt_hip_line', 'skirt_full_length',
+                'shirt_chest', 'shirt_waist', 'shirt_shoulder', 'shirt_full_length', 'shirt_bottom_cut',
+                'measurement_date', 'is_current', 'fitting_notes',
+            ]));
+        }
 
         return to_route('orders.show', $order)
             ->with('success', 'Order created successfully.');
