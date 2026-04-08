@@ -62,7 +62,11 @@ final class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $businessProfile = BusinessProfile::query()->first();
+        try {
+            $businessProfile = BusinessProfile::query()->first();
+        } catch (\Exception $e) {
+            $businessProfile = null;
+        }
 
         View::composer('*', function ($view): void {
             $currencyManager = app(CurrencyManager::class);
