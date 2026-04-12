@@ -377,7 +377,7 @@
                         </div>
                     @endif
 
-                    @if($customer->measurements->count() > 1 || ($customer->measurements->count() === 1 && !$currentMeasurement))
+                    @if($customer->measurements->count() > 1 || ($customer->measurements->count() === 1 && $currentMeasurements->isEmpty()))
                         <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700">
                             <div class="px-6 py-3 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
                                 <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">All Records</span>

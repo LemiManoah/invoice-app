@@ -261,13 +261,17 @@
                             <!-- Current Measurements Display -->
                             <div x-show="selectedCustomerMeasurements !== null" x-transition>
                                 <div class="rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
-                                    <div class="px-3 py-2 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                                    <button type="button" @click="measurementsOpen = !measurementsOpen"
+                                        class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-800/50 transition">
                                         <span class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
                                             <i class="fas fa-ruler-combined text-blue-500"></i> Current Measurements
                                         </span>
-                                        <span class="text-xs text-gray-400">(inches)</span>
-                                    </div>
-                                    <div class="p-3 space-y-3">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs text-gray-400">(inches)</span>
+                                            <i class="fas fa-chevron-down text-gray-400 transition-transform duration-200" :class="measurementsOpen ? 'rotate-180' : ''"></i>
+                                        </div>
+                                    </button>
+                                    <div x-show="measurementsOpen" x-transition class="p-3 space-y-3">
                                         <template x-for="piece in Object.keys(selectedCustomerMeasurements)" :key="piece">
                                             <div>
                                                 <div class="flex items-center justify-between mb-1">
@@ -348,6 +352,7 @@
                     fabric_details: ''
                 }],
                 showMeasurements: false,
+                measurementsOpen: true,
                 selectedPieces: [],
                 customerGender: '{{ optional($customers->firstWhere("id", $selected_customer_id))->gender }}',
                 selectedCustomerMeasurements: allCustomerMeasurements['{{ $selected_customer_id }}'] || null,
@@ -368,6 +373,7 @@
                     const customer = customers.find(c => c.id == customerId);
                     this.customerGender = customer ? customer.gender : '';
                     this.selectedCustomerMeasurements = allCustomerMeasurements[customerId] || null;
+                    this.measurementsOpen = true;
                     if (this.customerGender !== 'Female') {
                         this.selectedPieces = this.selectedPieces.filter(p => p !== 'skirt');
                     }
