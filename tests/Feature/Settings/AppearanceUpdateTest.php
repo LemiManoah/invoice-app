@@ -1,9 +1,7 @@
 <?php
 
-use App\Models\User;
-
 test('appearance settings screen can be rendered', function () {
-    $user = User::factory()->create();
+    $user = createUserWithPermissions(['settings.appearance.update']);
 
     $response = $this->actingAs($user)->get('/settings/appearance');
 
@@ -11,7 +9,8 @@ test('appearance settings screen can be rendered', function () {
 });
 
 test('users can update theme to light', function () {
-    $user = User::factory()->create([
+    $user = createUserWithPermissions(['settings.appearance.update']);
+    $user->update([
         'theme_preference' => 'system',
     ]);
 
@@ -28,7 +27,8 @@ test('users can update theme to light', function () {
 });
 
 test('users can update theme to dark', function () {
-    $user = User::factory()->create([
+    $user = createUserWithPermissions(['settings.appearance.update']);
+    $user->update([
         'theme_preference' => 'light',
     ]);
 
@@ -41,7 +41,8 @@ test('users can update theme to dark', function () {
 });
 
 test('users can update theme to system', function () {
-    $user = User::factory()->create([
+    $user = createUserWithPermissions(['settings.appearance.update']);
+    $user->update([
         'theme_preference' => 'dark',
     ]);
 
@@ -54,7 +55,8 @@ test('users can update theme to system', function () {
 });
 
 test('theme update requires valid value', function () {
-    $user = User::factory()->create([
+    $user = createUserWithPermissions(['settings.appearance.update']);
+    $user->update([
         'theme_preference' => 'system',
     ]);
 

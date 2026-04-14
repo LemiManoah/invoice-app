@@ -1,15 +1,13 @@
 <?php
 
-use App\Models\User;
-
 test('profile page is displayed', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(createUserWithPermissions(['settings.profile.update']));
 
     $this->get('/settings/profile')->assertOk();
 });
 
 test('profile information can be updated', function () {
-    $user = User::factory()->create();
+    $user = createUserWithPermissions(['settings.profile.update']);
 
     $response = $this
         ->actingAs($user)
@@ -30,7 +28,7 @@ test('profile information can be updated', function () {
 });
 
 test('email verification status is unchanged when email address is unchanged', function () {
-    $user = User::factory()->create();
+    $user = createUserWithPermissions(['settings.profile.update']);
 
     $response = $this
         ->actingAs($user)
@@ -47,7 +45,7 @@ test('email verification status is unchanged when email address is unchanged', f
 });
 
 test('user can delete their account', function () {
-    $user = User::factory()->create();
+    $user = createUserWithPermissions();
 
     $response = $this
         ->actingAs($user)

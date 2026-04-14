@@ -36,7 +36,7 @@ it('can view the business profile page', function () {
     $this->actingAs($this->user)
         ->get(route('business-profile.show'))
         ->assertOk()
-        ->assertSee('Business Details')
+        ->assertSee('Business Information')
         ->assertSee('Acme Tailors');
 });
 

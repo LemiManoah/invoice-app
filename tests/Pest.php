@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -55,4 +57,24 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+function createUserWithPermissions(array $permissions = []): User
+{
+    $user = User::factory()->create();
+
+    if ($permissions === []) {
+        return $user;
+    }
+
+    foreach ($permissions as $permission) {
+        Permission::firstOrCreate([
+            'name' => $permission,
+            'guard_name' => 'web',
+        ]);
+    }
+
+    $user->givePermissionTo($permissions);
+
+    return $user;
 }
