@@ -20,14 +20,6 @@ pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature');
 
-uses(TestCase::class, RefreshDatabase::class)->in(
-    'Feature',
-    'Feature/Invoice',
-    'Feature/Payment',
-    'Feature/Order',
-    'Feature/Report',
-);
-
 /*
 |--------------------------------------------------------------------------
 | Expectations

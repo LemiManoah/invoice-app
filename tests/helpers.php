@@ -10,10 +10,46 @@ if (! function_exists('seedBaselineCurrencies')) {
      */
     function seedBaselineCurrencies(): array
     {
+        $upsertCurrency = static fn (array $attributes, array $values): \App\Models\Currency => \App\Models\Currency::query()
+            ->updateOrCreate($attributes, $values);
+
         return [
-            'ugx' => \App\Models\Currency::factory()->ugx()->create(),
-            'usd' => \App\Models\Currency::factory()->usd()->create(),
-            'kes' => \App\Models\Currency::factory()->kes()->create(),
+            'ugx' => $upsertCurrency(
+                ['code' => 'UGX'],
+                [
+                    'name' => 'Ugandan Shilling',
+                    'symbol' => 'UGX',
+                    'decimal_places' => 0,
+                    'exchange_rate' => 1.000000,
+                    'is_default' => true,
+                    'is_active' => true,
+                    'sort_order' => 1,
+                ],
+            ),
+            'usd' => $upsertCurrency(
+                ['code' => 'USD'],
+                [
+                    'name' => 'US Dollar',
+                    'symbol' => '$',
+                    'decimal_places' => 2,
+                    'exchange_rate' => 3800.000000,
+                    'is_default' => false,
+                    'is_active' => true,
+                    'sort_order' => 2,
+                ],
+            ),
+            'kes' => $upsertCurrency(
+                ['code' => 'KES'],
+                [
+                    'name' => 'Kenyan Shilling',
+                    'symbol' => 'KSh',
+                    'decimal_places' => 0,
+                    'exchange_rate' => 30.000000,
+                    'is_default' => false,
+                    'is_active' => true,
+                    'sort_order' => 3,
+                ],
+            ),
         ];
     }
 }
