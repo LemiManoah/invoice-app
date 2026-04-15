@@ -6,9 +6,11 @@ namespace App\Actions\Payment;
 
 use App\Actions\Audit\CreateAuditLogAction;
 use App\Actions\Invoice\RefreshInvoiceStatusAction;
+use App\Models\Currency;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
+use App\Support\CurrencyManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -19,6 +21,7 @@ final readonly class CreatePaymentAction
         private GenerateReceiptAction $generateReceipt,
         private RefreshInvoiceStatusAction $refreshInvoiceStatus,
         private CreateAuditLogAction $createAuditLog,
+        private CurrencyManager $currencyManager,
     ) {}
 
     /**
@@ -32,9 +35,27 @@ final readonly class CreatePaymentAction
             ]);
         }
 
+        $invoice->loadMissing('currency');
+
+        $paymentCurrency = Currency::query()->findOrFail($data['currency_id']);
         $paymentAmount = (float) $data['amount'];
-        if ($paymentAmount > (float) $invoice->balance_due) {
-            $data['amount'] = (float) $invoice->balance_due;
+        $invoiceEquivalent = $this->currencyManager->convertValue(
+            $paymentAmount,
+            $paymentCurrency,
+            $invoice->currency,
+        );
+
+        if ($invoiceEquivalent > (float) $invoice->balance_due) {
+            $maxReceivable = $this->currencyManager->convertValue(
+                $invoice->balance_due,
+                $invoice->currency,
+                $paymentCurrency,
+            );
+
+            $data['amount'] = $this->truncateAmount(
+                $maxReceivable,
+                (int) $paymentCurrency->decimal_places,
+            );
         }
 
         return DB::transaction(function () use ($data, $invoice): Payment {
@@ -61,5 +82,16 @@ final readonly class CreatePaymentAction
 
             return $payment->fresh(['receipt', 'invoice']);
         });
+    }
+
+    private function truncateAmount(float $amount, int $decimals): float
+    {
+        if ($decimals <= 0) {
+            return floor($amount);
+        }
+
+        $factor = 10 ** $decimals;
+
+        return floor($amount * $factor) / $factor;
     }
 }

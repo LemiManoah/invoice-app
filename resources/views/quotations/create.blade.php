@@ -24,122 +24,134 @@
 
         <form action="{{ route('quotations.store') }}" method="POST">
             @csrf
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
-                {{-- Items --}}
-                <div class="lg:col-span-3 space-y-6">
-                    <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                        <div class="mb-4 flex items-center justify-between">
-                            <h2 class="text-lg font-medium text-gray-900 dark:text-white">Quotation Items</h2>
-                            @error('items')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
-                        </div>
-
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                <thead>
-                                    <tr>
-                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Item Name</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Description</th>
-                                        <th class="w-24 px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Qty</th>
-                                        <th class="w-32 px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Unit Price</th>
-                                        <th class="w-32 px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Total</th>
-                                        <th class="px-4 py-2"></th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                    <template x-for="(item, index) in items" :key="index">
-                                        <tr>
-                                            <td class="px-4 py-2">
-                                                <input type="text" :name="'items[' + index + '][item_name]'" x-model="item.item_name" required
-                                                    class="w-full rounded-md border border-gray-300 px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                            </td>
-                                            <td class="px-4 py-2">
-                                                <input type="text" :name="'items[' + index + '][description]'" x-model="item.description"
-                                                    class="w-full rounded-md border border-gray-300 px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                            </td>
-                                            <td class="px-4 py-2">
-                                                <input type="number" :name="'items[' + index + '][quantity]'" x-model.number="item.quantity" @input="calculateTotals()" required min="1"
-                                                    class="w-full rounded-md border border-gray-300 px-3 py-1 text-center text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                            </td>
-                                            <td class="px-4 py-2">
-                                                <input type="number" :name="'items[' + index + '][unit_price]'" x-model.number="item.unit_price" @input="calculateTotals()" required step="{{ $currencyStep }}" min="0"
-                                                    class="w-full rounded-md border border-gray-300 px-3 py-1 text-right text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                            </td>
-                                            <td class="px-4 py-2 text-right text-sm font-medium text-gray-900 dark:text-white">
-                                                <span x-text="formatCurrency(item.quantity * item.unit_price)"></span>
-                                            </td>
-                                            <td class="px-4 py-2 text-right">
-                                                <button type="button" @click="removeItem(index)" class="p-1 text-red-600 hover:text-red-900">
-                                                    <i class="fas fa-trash text-sm"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <button type="button" @click="addItem()" class="mt-4 rounded bg-gray-100 px-3 py-1 text-sm text-gray-700 transition hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300">
-                            <i class="fas fa-plus mr-1"></i> Add Item
-                        </button>
+            <div class="space-y-6">
+                <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="mb-4">
+                        <h2 class="text-lg font-medium text-gray-900 dark:text-white">Settings</h2>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Start with the customer, quotation dates, and currency so the pricing below matches the offer you want to send.</p>
                     </div>
 
-                    <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                        <label for="notes" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
-                        <textarea name="notes" id="notes" rows="3" placeholder="Terms, special conditions, etc."
-                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">{{ old('notes') }}</textarea>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                        <div>
+                            <label for="customer_id" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Customer *</label>
+                            <select name="customer_id" id="customer_id" required
+                                class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                <option value="">Select Customer</option>
+                                @foreach($customers as $customer)
+                                    <option value="{{ $customer->id }}" @selected(old('customer_id', $selectedCustomerId) == $customer->id)>
+                                        {{ $customer->full_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('customer_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div>
+                            <label for="currency_id" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Currency *</label>
+                            <select name="currency_id" id="currency_id" required
+                                class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                @foreach($currencies as $currency)
+                                    <option value="{{ $currency->id }}" @selected((int) old('currency_id', $activeCurrency->id) === $currency->id)>
+                                        {{ $currency->code }} - {{ $currency->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('currency_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div>
+                            <label for="quotation_date" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Quotation Date *</label>
+                            <input type="date" name="quotation_date" id="quotation_date" value="{{ old('quotation_date', now()->toDateString()) }}" required
+                                class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                            @error('quotation_date')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div>
+                            <label for="valid_until" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Valid Until</label>
+                            <input type="date" name="valid_until" id="valid_until" value="{{ old('valid_until') }}"
+                                class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                            @error('valid_until')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
                     </div>
                 </div>
 
-                {{-- Settings + Summary --}}
-                <div class="lg:col-span-1 space-y-6">
-                    <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                        <h2 class="mb-4 text-lg font-medium text-gray-900 dark:text-white">Settings</h2>
-                        <div class="space-y-4">
-                            <div>
-                                <label for="customer_id" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Customer *</label>
-                                <select name="customer_id" id="customer_id" required
-                                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                    <option value="">Select Customer</option>
-                                    @foreach($customers as $customer)
-                                        <option value="{{ $customer->id }}" @selected(old('customer_id', $selectedCustomerId) == $customer->id)>
-                                            {{ $customer->full_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('customer_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                            </div>
-
-                            <div>
-                                <label for="currency_id" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Currency *</label>
-                                <select name="currency_id" id="currency_id" required
-                                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                    @foreach($currencies as $currency)
-                                        <option value="{{ $currency->id }}" @selected((int) old('currency_id', $activeCurrency->id) === $currency->id)>
-                                            {{ $currency->code }} - {{ $currency->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('currency_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                            </div>
-
-                            <div>
-                                <label for="quotation_date" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Quotation Date *</label>
-                                <input type="date" name="quotation_date" id="quotation_date" value="{{ old('quotation_date', now()->toDateString()) }}" required
-                                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                @error('quotation_date')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                            </div>
-
-                            <div>
-                                <label for="valid_until" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Valid Until</label>
-                                <input type="date" name="valid_until" id="valid_until" value="{{ old('valid_until') }}"
-                                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                @error('valid_until')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                            </div>
+                <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="mb-4 flex items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-lg font-medium text-gray-900 dark:text-white">Quotation Items</h2>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">List each quoted item here with its quantity and unit price so the customer can see exactly what is included.</p>
                         </div>
+                        @error('items')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
+                    </div>
+
+                    <table class="w-full table-fixed divide-y divide-gray-200 dark:divide-gray-700">
+                        <colgroup>
+                            <col class="w-[23%]">
+                            <col class="w-[31%]">
+                            <col class="w-[12%]">
+                            <col class="w-[16%]">
+                            <col class="w-[14%]">
+                            <col class="w-[4%]">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Item Name</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Description</th>
+                                <th class="w-32 px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Qty</th>
+                                <th class="w-44 px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Unit Price</th>
+                                <th class="w-40 px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Total</th>
+                                <th class="px-4 py-2"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <template x-for="(item, index) in items" :key="index">
+                                <tr>
+                                    <td class="px-4 py-3 align-top">
+                                        <input type="text" :name="'items[' + index + '][item_name]'" x-model="item.item_name" required
+                                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                    </td>
+                                    <td class="px-4 py-3 align-top">
+                                        <input type="text" :name="'items[' + index + '][description]'" x-model="item.description"
+                                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                    </td>
+                                    <td class="px-4 py-3 align-top">
+                                        <input type="number" :name="'items[' + index + '][quantity]'" x-model.number="item.quantity" @input="calculateTotals()" required min="1"
+                                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-center text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                    </td>
+                                    <td class="px-4 py-3 align-top">
+                                        <input type="number" :name="'items[' + index + '][unit_price]'" x-model.number="item.unit_price" @input="calculateTotals()" required step="{{ $currencyStep }}" min="0"
+                                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-right text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                    </td>
+                                    <td class="px-4 py-3 align-top text-right text-sm font-medium text-gray-900 dark:text-white">
+                                        <span x-text="formatCurrency(item.quantity * item.unit_price)"></span>
+                                    </td>
+                                    <td class="px-4 py-3 align-top text-right">
+                                        <button type="button" @click="removeItem(index)" class="p-1 text-red-600 hover:text-red-900">
+                                            <i class="fas fa-trash text-sm"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+
+                    <button type="button" @click="addItem()" class="mt-4 rounded bg-gray-100 px-3 py-1 text-sm text-gray-700 transition hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300">
+                        <i class="fas fa-plus mr-1"></i> Add Item
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <h2 class="text-lg font-medium text-gray-900 dark:text-white">Notes</h2>
+                        <p class="mt-1 mb-4 text-sm text-gray-500 dark:text-gray-400">Add assumptions, delivery timelines, exclusions, or other terms the customer should read with this quotation.</p>
+                        <label for="notes" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+                        <textarea name="notes" id="notes" rows="6" placeholder="Terms, special conditions, etc."
+                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">{{ old('notes') }}</textarea>
                     </div>
 
                     <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                         <h2 class="mb-4 text-lg font-medium text-gray-900 dark:text-white">Summary</h2>
+                        <p class="mt-1 mb-4 text-sm text-gray-500 dark:text-gray-400">Review the quoted subtotal, then apply any discount or tax before you save and share the quotation.</p>
                         <div class="space-y-3 text-sm">
                             <div class="flex justify-between text-gray-500">
                                 <span>Subtotal</span>
@@ -148,12 +160,12 @@
                             <div class="flex items-center justify-between text-gray-500">
                                 <span>Discount</span>
                                 <input type="number" name="discount_amount" x-model.number="discount" @input="calculateTotals()" step="{{ $currencyStep }}" min="0"
-                                    class="w-24 rounded border border-gray-300 px-2 py-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                    class="w-28 rounded border border-gray-300 px-2 py-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                             </div>
                             <div class="flex items-center justify-between border-b border-gray-100 pb-3 text-gray-500 dark:border-gray-700">
                                 <span>Tax</span>
                                 <input type="number" name="tax_amount" x-model.number="tax" @input="calculateTotals()" step="{{ $currencyStep }}" min="0"
-                                    class="w-24 rounded border border-gray-300 px-2 py-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                    class="w-28 rounded border border-gray-300 px-2 py-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                             </div>
                             <div class="flex justify-between pt-1 text-lg font-bold text-gray-900 dark:text-white">
                                 <span>Total</span>

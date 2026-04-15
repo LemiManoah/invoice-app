@@ -26,7 +26,7 @@ final readonly class InvoicePolicy
 
     public function update(User $user, Invoice $invoice): bool
     {
-        return $user->can('invoices.update') && $invoice->status === 'draft';
+        return $user->can('invoices.update');
     }
 
     public function issue(User $user, Invoice $invoice): bool

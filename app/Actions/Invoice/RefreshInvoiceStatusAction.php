@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace App\Actions\Invoice;
 
 use App\Models\Invoice;
+use App\Models\Payment;
+use App\Support\CurrencyManager;
 
 final readonly class RefreshInvoiceStatusAction
 {
+    public function __construct(
+        private CurrencyManager $currencyManager,
+    ) {}
+
     public function handle(Invoice $invoice): Invoice
     {
         if ($invoice->status === 'cancelled') {
@@ -15,7 +21,16 @@ final readonly class RefreshInvoiceStatusAction
         }
 
         $today = today();
-        $amountPaid = (float) $invoice->validPayments()->sum('amount');
+        $invoice->loadMissing('currency');
+
+        $amountPaid = (float) $invoice->validPayments()
+            ->with('currency')
+            ->get()
+            ->sum(fn (Payment $payment): float => $this->currencyManager->convertValue(
+                $payment->amount,
+                $payment->currency ?? $invoice->currency,
+                $invoice->currency,
+            ));
         $balanceDue = max((float) $invoice->total_amount - $amountPaid, 0);
 
         if ($invoice->issued_at === null && $invoice->status === 'draft') {

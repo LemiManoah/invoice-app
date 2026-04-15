@@ -6,6 +6,7 @@ namespace Database\Factories;
 
 use App\Models\PaymentMethod;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<PaymentMethod>
@@ -16,11 +17,11 @@ class PaymentMethodFactory extends Factory
 
     public function definition(): array
     {
-        $name = fake()->unique()->randomElement(['Cash', 'Card', 'Bank Transfer', 'Mobile Money', 'Cheque']);
+        $name = 'Method '.strtoupper(fake()->unique()->bothify('??##'));
 
         return [
             'name' => $name,
-            'slug' => strtolower(str_replace(' ', '-', $name)).'-'.fake()->unique()->numerify('####'),
+            'slug' => Str::slug($name),
             'is_active' => true,
             'sort_order' => 0,
             'notes' => null,

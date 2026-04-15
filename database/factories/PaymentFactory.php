@@ -24,7 +24,15 @@ class PaymentFactory extends Factory
             'currency_id' => fn () => Currency::query()->first()?->id ?? Currency::factory()->create()->id,
             'payment_date' => now()->toDateString(),
             'amount' => 100,
-            'payment_method_id' => fn () => PaymentMethod::factory()->create()->id,
+            'payment_method_id' => fn () => PaymentMethod::query()->firstOrCreate(
+                ['name' => 'Cash'],
+                [
+                    'slug' => 'cash',
+                    'is_active' => true,
+                    'sort_order' => 1,
+                    'notes' => null,
+                ],
+            )->id,
             'payment_method' => 'Cash',
             'reference_number' => null,
             'notes' => null,

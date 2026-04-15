@@ -28,6 +28,7 @@ final readonly class UpdateInvoiceAction
             $invoice->update([
                 'customer_id' => $data['customer_id'],
                 'order_id' => $data['order_id'] ?? null,
+                'currency_id' => $data['currency_id'],
                 'invoice_date' => $data['invoice_date'],
                 'due_date' => $data['due_date'] ?? null,
                 'notes' => $data['notes'] ?? '',

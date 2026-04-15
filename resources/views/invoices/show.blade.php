@@ -1,7 +1,3 @@
-@php
-    $currencyStep = $activeCurrency->decimal_places > 0 ? '0.01' : '1';
-@endphp
-
 <x-layouts.app title="Invoice {{ $invoice->invoice_number }}">
     <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -218,7 +214,20 @@
     @can('create', [\App\Models\Payment::class, $invoice])
         @if($paymentMethods->isNotEmpty())
         <x-modal name="record-payment" maxWidth="lg">
-            <form action="{{ route('payments.store', $invoice) }}" method="POST" class="p-6" x-data="{ amount: {{ old('amount', $invoice->balance_due) }}, balanceDue: {{ $invoice->balance_due }} }">
+            <form action="{{ route('payments.store', $invoice) }}" method="POST" class="p-6" x-data="paymentModalForm({{ \Illuminate\Support\Js::from([
+                'amount' => (float) old('amount', $invoice->balance_due),
+                'balanceDue' => (float) $invoice->balance_due,
+                'invoiceCurrencyId' => (string) $invoice->currency_id,
+                'selectedCurrencyId' => (string) old('currency_id', $invoice->currency_id),
+                'currencies' => $currencies->mapWithKeys(static fn ($currency): array => [
+                    (string) $currency->id => [
+                        'code' => $currency->code,
+                        'symbol' => $currency->symbol,
+                        'decimal_places' => (int) $currency->decimal_places,
+                        'exchange_rate' => (float) $currency->exchange_rate,
+                    ],
+                ])->all(),
+            ]) }})">
                 @csrf
                 <div class="mb-5 border-b border-gray-100 dark:border-gray-700 pb-4">
                     <h2 class="text-lg font-medium text-gray-900 dark:text-white">
@@ -229,7 +238,7 @@
                     </p>
                 </div>
 
-                @if($errors->hasAny(['amount', 'payment_date', 'payment_method_id', 'reference_number', 'notes']))
+                @if($errors->hasAny(['currency_id', 'amount', 'payment_date', 'payment_method_id', 'reference_number', 'notes']))
                     <div class="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300">
                         Please correct the payment form errors below and try again.
                     </div>
@@ -237,12 +246,17 @@
 
                 <div class="mb-5">
                     <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount Received *</label>
-                    <input type="number" name="amount" id="amount" step="{{ $currencyStep }}" min="{{ $currencyStep }}" x-model.number="amount" required
+                    <input type="number" name="amount" id="amount" :step="currentCurrencyStep" :min="currentCurrencyStep" x-model.number="amount" required
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500">
-                    
-                    <template x-if="amount > balanceDue">
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        Maximum receivable in the selected currency:
+                        <span class="font-medium text-gray-700 dark:text-gray-200" x-text="formatSelectedCurrency(maxReceivableAmount())"></span>
+                    </p>
+
+                    <template x-if="changeDue() > 0">
                         <div class="mt-2 text-sm text-emerald-600 dark:text-emerald-400 font-medium">
-                            Change to return: <span x-text="'{{ $activeCurrency->symbol }}' + (amount - balanceDue).toFixed({{ $activeCurrency->decimal_places > 0 ? 2 : 0 }})"></span>
+                            Change to return:
+                            <span x-text="formatSelectedCurrency(changeDue())"></span>
                         </div>
                     </template>
                     
@@ -263,6 +277,7 @@
                 <div class="mb-5">
                     <label for="currency_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency *</label>
                     <select name="currency_id" id="currency_id" required
+                        x-model="selectedCurrencyId"
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500">
                         @foreach($currencies as $currency)
                             <option value="{{ $currency->id }}" @selected((int) old('currency_id', $invoice->currency_id ?? $activeCurrency->id) === $currency->id)>
@@ -318,7 +333,7 @@
             </form>
         </x-modal>
 
-        @if($errors->hasAny(['amount', 'payment_date', 'payment_method_id', 'reference_number', 'notes']))
+        @if($errors->hasAny(['currency_id', 'amount', 'payment_date', 'payment_method_id', 'reference_number', 'notes']))
             <script>
                 window.addEventListener('load', () => {
                     window.dispatchEvent(new CustomEvent('open-modal', { detail: 'record-payment' }));
@@ -327,6 +342,55 @@
         @endif
         @endif
     @endcan
+
+    <script>
+        function paymentModalForm(config) {
+            return {
+                amount: Number(config.amount ?? 0),
+                balanceDue: Number(config.balanceDue ?? 0),
+                invoiceCurrencyId: String(config.invoiceCurrencyId),
+                selectedCurrencyId: String(config.selectedCurrencyId),
+                currencies: config.currencies,
+
+                get currentCurrency() {
+                    return this.currencies[String(this.selectedCurrencyId)] ?? Object.values(this.currencies)[0];
+                },
+
+                get currentCurrencyStep() {
+                    return this.currentCurrency.decimal_places > 0 ? '0.01' : '1';
+                },
+
+                convertAmount(amount, sourceCurrencyId, targetCurrencyId) {
+                    const source = this.currencies[String(sourceCurrencyId)];
+                    const target = this.currencies[String(targetCurrencyId)];
+
+                    if (!source || !target || !target.exchange_rate) {
+                        return Number(amount || 0);
+                    }
+
+                    return Number(amount || 0) * (Number(source.exchange_rate) / Number(target.exchange_rate));
+                },
+
+                maxReceivableAmount() {
+                    return this.convertAmount(this.balanceDue, this.invoiceCurrencyId, this.selectedCurrencyId);
+                },
+
+                changeDue() {
+                    return Math.max(this.amount - this.maxReceivableAmount(), 0);
+                },
+
+                formatSelectedCurrency(amount) {
+                    const currency = this.currentCurrency;
+                    const formatted = new Intl.NumberFormat('en-US', {
+                        minimumFractionDigits: currency.decimal_places,
+                        maximumFractionDigits: currency.decimal_places,
+                    }).format(Number(amount || 0));
+
+                    return `${currency.symbol} ${formatted}`;
+                },
+            };
+        }
+    </script>
 
     @foreach($invoice->payments->where('status', 'valid') as $payment)
         @can('void', $payment)

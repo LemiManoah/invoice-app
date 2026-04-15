@@ -2,7 +2,6 @@
     $initialItems = old('items', $invoiceDefaults['items']);
     $initialDiscount = (float) old('discount_amount', $invoiceDefaults['discount_amount']);
     $initialTax = (float) old('tax_amount', $invoiceDefaults['tax_amount']);
-    $currencyStep = $activeCurrency->decimal_places > 0 ? '0.01' : '1';
 @endphp
 
 <x-layouts.app title="Create Invoice">
@@ -15,7 +14,15 @@
         ])->values()->all(),
         'discount' => $initialDiscount,
         'tax' => $initialTax,
-        'currency' => $activeCurrencyConfig,
+        'currencies' => $currencies->mapWithKeys(static fn ($currency): array => [
+            (string) $currency->id => [
+                'code' => $currency->code,
+                'symbol' => $currency->symbol,
+                'decimal_places' => (int) $currency->decimal_places,
+                'exchange_rate' => (float) $currency->exchange_rate,
+            ],
+        ])->all(),
+        'selectedCurrencyId' => (string) old('currency_id', $activeCurrency->id),
     ]) }})">
         <div class="mb-6">
             <a href="{{ route('invoices.index') }}" class="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 mb-2 inline-block">
@@ -43,163 +50,174 @@
 
         <form action="{{ route('invoices.store') }}" method="POST">
             @csrf
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <div class="lg:col-span-3 space-y-6">
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                        <div class="flex items-center justify-between gap-4 mb-4">
-                            <h2 class="text-lg font-medium text-gray-900 dark:text-white">Invoice Items</h2>
-                            @error('items')
-                                <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+            <div class="space-y-6">
+                <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                    <div class="mb-4">
+                        <h2 class="text-lg font-medium text-gray-900 dark:text-white">Settings</h2>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Choose the customer, invoice dates, linked order, and billing currency before you start adjusting line items.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-5">
+                        <div>
+                            <label for="customer_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer *</label>
+                            <select name="customer_id" id="customer_id" required
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                                <option value="">Select Customer</option>
+                                @foreach($customers as $customer)
+                                    <option value="{{ $customer->id }}" @selected((string) old('customer_id', $selectedCustomerId) === (string) $customer->id)>
+                                        {{ $customer->full_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('customer_id')
+                                <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                <thead>
-                                    <tr>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Qty</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Unit Price</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Total</th>
-                                        <th class="px-4 py-2"></th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                    <template x-for="(item, index) in items" :key="index">
-                                        <tr>
-                                            <td class="px-4 py-2">
-                                                <input type="text" :name="'items[' + index + '][item_name]'" x-model="item.item_name" required
-                                                    class="w-54 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                                            </td>
-                                            <td class="px-4 py-2">
-                                                <input type="text" :name="'items[' + index + '][description]'" x-model="item.description"
-                                                    class="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                                            </td>
-                                            <td class="px-4 py-2">
-                                                <input type="number" :name="'items[' + index + '][quantity]'" x-model.number="item.quantity" @input="calculateTotals()" required min="1"
-                                                    class="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm text-center">
-                                            </td>
-                                            <td class="px-4 py-2">
-                                                <input type="number" :name="'items[' + index + '][unit_price]'" x-model.number="item.unit_price" @input="calculateTotals()" required step="{{ $currencyStep }}" min="0"
-                                                    class="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm text-right">
-                                            </td>
-                                            <td class="px-4 py-2 text-right text-sm text-gray-900 dark:text-white font-medium">
-                                                <span x-text="formatCurrency(item.quantity * item.unit_price)"></span>
-                                            </td>
-                                            <td class="px-4 py-2 text-right">
-                                                <button type="button" @click="removeItem(index)" class="text-red-600 hover:text-red-900 p-1" title="Remove item">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
+                        <div>
+                            <label for="currency_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency *</label>
+                            <select name="currency_id" id="currency_id" required
+                                x-model="selectedCurrencyId"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                                @foreach($currencies as $currency)
+                                    <option value="{{ $currency->id }}" @selected((int) old('currency_id', $activeCurrency->id) === $currency->id)>
+                                        {{ $currency->code }} - {{ $currency->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('currency_id')
+                                <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
                         </div>
 
-                        @error('items.*.item_name')
-                            <p class="mt-3 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                        @error('items.*.quantity')
-                            <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                        @error('items.*.unit_price')
-                            <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
+                        <div>
+                            <label for="invoice_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Invoice Date *</label>
+                            <input type="date" name="invoice_date" id="invoice_date" value="{{ old('invoice_date', $invoiceDefaults['invoice_date']) }}" required
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                            @error('invoice_date')
+                                <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                        <button type="button" @click="addItem()" class="mt-4 px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 transition">
-                            <i class="fas fa-plus mr-1"></i> Add Item
-                        </button>
+                        <div>
+                            <label for="order_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Link Order</label>
+                            <select name="order_id" id="order_id"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                                <option value="">No linked order</option>
+                                @foreach($orders as $order)
+                                    <option value="{{ $order->id }}" @selected((string) old('order_id', $selectedOrderId) === (string) $order->id)>
+                                        {{ $order->order_number }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('order_id')
+                                <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="due_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Due Date</label>
+                            <input type="date" name="due_date" id="due_date" value="{{ old('due_date', $invoiceDefaults['due_date']) }}"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                            @error('due_date')
+                                <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between gap-4 mb-4">
+                        <div>
+                            <h2 class="text-lg font-medium text-gray-900 dark:text-white">Invoice Items</h2>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Add each billed item here with its quantity and price so the running totals update as you work.</p>
+                        </div>
+                        @error('items')
+                            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
                     </div>
 
+                    <table class="w-full table-fixed divide-y divide-gray-200 dark:divide-gray-700">
+                        <colgroup>
+                            <col class="w-[23%]">
+                            <col class="w-[31%]">
+                            <col class="w-[12%]">
+                            <col class="w-[16%]">
+                            <col class="w-[14%]">
+                            <col class="w-[4%]">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Qty</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-44">Unit Price</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Total</th>
+                                <th class="px-4 py-2"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <template x-for="(item, index) in items" :key="index">
+                                <tr>
+                                    <td class="px-4 py-3 align-top">
+                                        <input type="text" :name="'items[' + index + '][item_name]'" x-model="item.item_name" required
+                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                                    </td>
+                                    <td class="px-4 py-3 align-top">
+                                        <input type="text" :name="'items[' + index + '][description]'" x-model="item.description"
+                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
+                                    </td>
+                                    <td class="px-4 py-3 align-top">
+                                        <input type="number" :name="'items[' + index + '][quantity]'" x-model.number="item.quantity" @input="calculateTotals()" required min="1"
+                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm text-center">
+                                    </td>
+                                    <td class="px-4 py-3 align-top">
+                                        <input type="number" :name="'items[' + index + '][unit_price]'" x-model.number="item.unit_price" @input="calculateTotals()" required :step="currentCurrencyStep" min="0"
+                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm text-right">
+                                    </td>
+                                    <td class="px-4 py-3 align-top text-right text-sm text-gray-900 dark:text-white font-medium">
+                                        <span x-text="formatCurrency(item.quantity * item.unit_price)"></span>
+                                    </td>
+                                    <td class="px-4 py-3 align-top text-right">
+                                        <button type="button" @click="removeItem(index)" class="text-red-600 hover:text-red-900 p-1" title="Remove item">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+
+                    @error('items.*.item_name')
+                        <p class="mt-3 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                    @error('items.*.quantity')
+                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                    @error('items.*.unit_price')
+                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+
+                    <button type="button" @click="addItem()" class="mt-4 px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 transition">
+                        <i class="fas fa-plus mr-1"></i> Add Item
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                        <h2 class="text-lg font-medium text-gray-900 dark:text-white">Invoice Notes</h2>
                         <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Invoice Notes</label>
-                        <textarea name="notes" id="notes" rows="3" placeholder="Terms, bank details, etc."
+                        <textarea name="notes" id="notes" rows="6" placeholder="Terms, bank details, etc."
                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">{{ old('notes', $invoiceDefaults['notes']) }}</textarea>
                         @error('notes')
                             <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
-                </div>
-
-                <div class="lg:col-span-1 space-y-6">
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Settings</h2>
-
-                        <div class="space-y-4">
-                            <div>
-                                <label for="customer_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer *</label>
-                                <select name="customer_id" id="customer_id" required
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                                    <option value="">Select Customer</option>
-                                    @foreach($customers as $customer)
-                                        <option value="{{ $customer->id }}" @selected((string) old('customer_id', $selectedCustomerId) === (string) $customer->id)>
-                                            {{ $customer->full_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('customer_id')
-                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div>
-                                <label for="currency_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency *</label>
-                                <select name="currency_id" id="currency_id" required
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                                    @foreach($currencies as $currency)
-                                        <option value="{{ $currency->id }}" @selected((int) old('currency_id', $activeCurrency->id) === $currency->id)>
-                                            {{ $currency->code }} - {{ $currency->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('currency_id')
-                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div>
-                                <label for="invoice_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Invoice Date *</label>
-                                <input type="date" name="invoice_date" id="invoice_date" value="{{ old('invoice_date', $invoiceDefaults['invoice_date']) }}" required
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                                @error('invoice_date')
-                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div>
-                                <label for="order_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Link Order</label>
-                                <select name="order_id" id="order_id"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                                    <option value="">No linked order</option>
-                                    @foreach($orders as $order)
-                                        <option value="{{ $order->id }}" @selected((string) old('order_id', $selectedOrderId) === (string) $order->id)>
-                                            {{ $order->order_number }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('order_id')
-                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div>
-                                <label for="due_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Due Date</label>
-                                <input type="date" name="due_date" id="due_date" value="{{ old('due_date', $invoiceDefaults['due_date']) }}"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                                @error('due_date')
-                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border border-gray-200 dark:border-gray-700">
                         <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Summary</h2>
-
                         <div class="space-y-3 text-sm">
                             <div class="flex justify-between text-gray-500">
                                 <span>Subtotal</span>
@@ -207,16 +225,16 @@
                             </div>
                             <div class="flex justify-between items-center text-gray-500">
                                 <span>Discount</span>
-                                <input type="number" name="discount_amount" x-model.number="discount" @input="calculateTotals()" step="{{ $currencyStep }}" min="0"
-                                    class="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white text-right">
+                                <input type="number" name="discount_amount" x-model.number="discount" @input="calculateTotals()" :step="currentCurrencyStep" min="0"
+                                    class="w-28 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white text-right">
                             </div>
                             @error('discount_amount')
                                 <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
                             <div class="flex justify-between items-center text-gray-500 border-b border-gray-100 dark:border-gray-700 pb-3">
                                 <span>Tax</span>
-                                <input type="number" name="tax_amount" x-model.number="tax" @input="calculateTotals()" step="{{ $currencyStep }}" min="0"
-                                    class="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white text-right">
+                                <input type="number" name="tax_amount" x-model.number="tax" @input="calculateTotals()" :step="currentCurrencyStep" min="0"
+                                    class="w-28 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white text-right">
                             </div>
                             @error('tax_amount')
                                 <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -244,10 +262,19 @@
                 discount: config.discount,
                 tax: config.tax,
                 total: 0,
-                currency: config.currency,
+                currencies: config.currencies,
+                selectedCurrencyId: String(config.selectedCurrencyId),
 
                 init() {
                     this.calculateTotals();
+                },
+
+                get currentCurrency() {
+                    return this.currencies[String(this.selectedCurrencyId)] ?? Object.values(this.currencies)[0];
+                },
+
+                get currentCurrencyStep() {
+                    return this.currentCurrency.decimal_places > 0 ? '0.01' : '1';
                 },
 
                 addItem() {
@@ -273,9 +300,10 @@
                 },
 
                 formatCurrency(amount) {
+                    const currency = this.currentCurrency;
                     return new Intl.NumberFormat('en-US', {
-                        minimumFractionDigits: this.currency.decimal_places,
-                        maximumFractionDigits: this.currency.decimal_places,
+                        minimumFractionDigits: currency.decimal_places,
+                        maximumFractionDigits: currency.decimal_places,
                     }).format(amount);
                 },
             };

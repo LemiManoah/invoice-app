@@ -11,7 +11,15 @@ use App\Models\Receipt;
 
 beforeEach(function () {
     $this->currencies = seedBaselineCurrencies();
-    $this->method = PaymentMethod::factory()->create(['name' => 'Cash', 'is_active' => true]);
+    $this->method = PaymentMethod::query()->updateOrCreate(
+        ['name' => 'Cash'],
+        [
+            'slug' => 'cash',
+            'is_active' => true,
+            'sort_order' => 1,
+            'notes' => null,
+        ],
+    );
     $this->admin = adminActor();
     $this->actingAs($this->admin);
 });
@@ -86,6 +94,25 @@ describe('PaymentController@store', function () {
             ->and($invoice->refresh()->status)->toBe('paid');
     });
 
+    it('caps an over-payment using the payment currency equivalent when currencies differ', function () {
+        $invoice = freshIssuedInvoice($this->currencies['ugx']->id, 3800);
+
+        $this->post(route('payments.store', $invoice), [
+            'currency_id' => $this->currencies['usd']->id,
+            'amount' => 2,
+            'payment_date' => now()->toDateString(),
+            'payment_method_id' => $this->method->id,
+        ])->assertRedirect();
+
+        $payment = $invoice->payments()->first();
+        $invoice->refresh();
+
+        expect((float) $payment->amount)->toBe(1.0)
+            ->and($payment->currency_id)->toBe($this->currencies['usd']->id)
+            ->and((float) $invoice->amount_paid)->toBe(3800.0)
+            ->and((float) $invoice->balance_due)->toBe(0.0);
+    });
+
     it('rejects payments on a draft invoice', function () {
         $invoice = Invoice::factory()->draft()->create(['currency_id' => $this->currencies['ugx']->id]);
 
@@ -141,13 +168,7 @@ describe('PaymentController@store', function () {
     });
 });
 
-describe('Multi-currency payment handling (known bug)', function () {
-    /**
-     * BUG: When a payment is recorded in a different currency from the invoice, the
-     * system currently stores the raw amount without converting to the invoice currency.
-     * A USD 1 payment on a UGX invoice (exchange_rate 3800) should reduce the UGX
-     * balance by 3800, not 1. This test documents the expected correct behaviour.
-     */
+describe('Multi-currency payment handling', function () {
     it('converts a foreign-currency payment into the invoice currency before applying it', function () {
         // Invoice in UGX for 3800 UGX. Payment of $1 USD (worth 3800 UGX) should fully pay it.
         $invoice = freshIssuedInvoice($this->currencies['ugx']->id, 3800);
@@ -161,7 +182,7 @@ describe('Multi-currency payment handling (known bug)', function () {
 
         $invoice->refresh();
         expect((float) $invoice->amount_paid)
-            ->toBe(3800.0, 'A foreign-currency payment should be converted into the invoice currency. Currently the raw amount is stored (bug).');
+            ->toBe(3800.0);
     });
 
     it('flags payments in a different currency from the invoice', function () {

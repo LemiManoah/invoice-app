@@ -13,6 +13,10 @@ final readonly class UpdateProfileAction
      */
     public function handle(User $user, array $data): User
     {
+        if (array_key_exists('email', $data) && $data['email'] !== $user->email) {
+            $user->forceFill(['email_verified_at' => null]);
+        }
+
         $user->fill($data);
         $user->save();
 

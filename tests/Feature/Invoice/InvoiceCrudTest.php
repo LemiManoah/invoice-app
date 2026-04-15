@@ -167,6 +167,26 @@ describe('InvoiceController@edit / @update', function () {
             ->and($invoice->items()->first()->item_name)->toBe('Replaced');
     });
 
+    it('persists a changed currency when editing a draft invoice', function () {
+        $customer = Customer::factory()->create();
+        $invoice = Invoice::factory()->for($customer)->draft()->create([
+            'currency_id' => $this->currencies['ugx']->id,
+        ]);
+
+        $this->put(route('invoices.update', $invoice), [
+            'customer_id' => $customer->id,
+            'currency_id' => $this->currencies['usd']->id,
+            'invoice_date' => now()->toDateString(),
+            'items' => [
+                ['item_name' => 'Updated suit', 'quantity' => 1, 'unit_price' => 250],
+            ],
+            'discount_amount' => 0,
+            'tax_amount' => 0,
+        ])->assertRedirect(route('invoices.show', $invoice));
+
+        expect($invoice->fresh()->currency_id)->toBe($this->currencies['usd']->id);
+    });
+
     it('redirects when trying to edit a non-draft invoice', function () {
         $invoice = Invoice::factory()->issued()->create();
         $this->get(route('invoices.edit', $invoice))

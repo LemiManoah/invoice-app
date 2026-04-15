@@ -74,8 +74,9 @@ describe('Invoice edit view quantity field', function () {
         $html = $this->get(route('invoices.edit', $invoice))->getContent();
 
         // Alpine hydration embeds the items collection via Js::from.
-        // "quantity":7 must appear (JSON-encoded) so x-model can read and display it.
-        expect($html)->toContain('&quot;quantity&quot;:7')
+        // Depending on Laravel's escaping strategy, the JSON may appear with
+        // HTML entities or with unicode-escaped quotes inside JSON.parse(...).
+        expect($html)->toMatch('/(?:&quot;|\\\\u0022)quantity(?:&quot;|\\\\u0022):7/')
             ->and($html)->toContain("x-model.number=\"item.quantity\"");
     });
 
