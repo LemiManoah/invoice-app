@@ -18,9 +18,9 @@ final class UserSeeder extends Seeder
 
         // Create Admin user
         $admin = User::firstOrCreate(
-            ['email' => 'admin@suits.com'],
+            ['email' => 'lemi.manoah@gmail.com'],
             [
-                'name' => 'System Administrator',
+                'name' => 'Lemi Admin',
                 'phone' => '+254700000000',
                 'password' => Hash::make('password'),
                 'is_active' => true,

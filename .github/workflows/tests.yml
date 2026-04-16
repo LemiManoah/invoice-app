@@ -49,3 +49,12 @@ jobs:
 
       - name: Run Tests
         run: ./vendor/bin/pest
+
+      - name: Redeploy App
+        uses: airvzxf/ftp-deployment-action@latest
+        with:
+          server: "ftp.ubuntusaver.com"
+          user: "alloto@allotoexclusives.com"
+          password: "HWSLM4_,$Jx%ER=("
+          local_dir: "./"
+          delete: "true"
