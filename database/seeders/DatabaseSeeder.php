@@ -18,13 +18,13 @@ class DatabaseSeeder extends Seeder
             PaymentMethodSeeder::class,
             ExpenseCategorySeeder::class,
             ProductCategorySeeder::class,
-            ProductSeeder::class,
-            CustomerSeeder::class,
-            MeasurementSeeder::class,
-            OrderSeeder::class,
-            InvoiceSeeder::class,
-            PaymentSeeder::class,
-            ExpenseSeeder::class,
+            // ProductSeeder::class,
+            // CustomerSeeder::class,
+            // MeasurementSeeder::class,
+            // OrderSeeder::class,
+            // InvoiceSeeder::class,
+            // PaymentSeeder::class,
+            // ExpenseSeeder::class,
         ]);
     }
 }
