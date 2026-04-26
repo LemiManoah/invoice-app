@@ -8,6 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('product_categories')) return;
+
         Schema::create('product_categories', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
@@ -19,6 +21,8 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('product_categories');
+        Schema::enableForeignKeyConstraints();
     }
 };
