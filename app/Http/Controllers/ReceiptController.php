@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Receipt;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\View\View;
@@ -14,7 +16,8 @@ final readonly class ReceiptController extends Controller implements HasMiddlewa
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:receipts.view'),
+            new Middleware('permission:receipts.view', only: ['index', 'show']),
+            new Middleware('permission:receipts.print', only: ['print', 'downloadPdf']),
         ];
     }
 
@@ -34,5 +37,16 @@ final readonly class ReceiptController extends Controller implements HasMiddlewa
         $receipt->load(['payment.invoice.customer', 'payment.receiver']);
 
         return view('receipts.print', compact('receipt'));
+    }
+
+    public function downloadPdf(Receipt $receipt): Response
+    {
+        $this->authorize('print', $receipt);
+
+        $receipt->load(['payment.invoice.customer', 'payment.receiver']);
+
+        $pdf = Pdf::loadView('receipts.print', compact('receipt'));
+
+        return $pdf->download('receipt-' . $receipt->number . '.pdf');
     }
 }

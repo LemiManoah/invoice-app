@@ -59,6 +59,11 @@
                 </a>
             @endcan
 
+            @include('components.share-actions', [
+                'shareUrl' => route('invoices.print', $invoice),
+                'shareText' => "Invoice {$invoice->invoice_number}"
+            ])
+
             @can('cancel', $invoice)
                 <button type="button" @click="$dispatch('open-modal', 'cancel-invoice')" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
                     <i class="fas fa-times mr-2"></i> Cancel

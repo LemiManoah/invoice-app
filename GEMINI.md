@@ -9,7 +9,7 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 
 This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
 
-- php - 8.5.4
+- php - 8.4.18
 - laravel/framework (LARAVEL) - v12
 - laravel/prompts (PROMPTS) - v0
 - larastan/larastan (LARASTAN) - v3
@@ -99,6 +99,7 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 # PHP
 
+- Always use strict typing at the head of a `.php` file: `declare(strict_types=1);`.
 - Always use curly braces for control structures, even for single-line bodies.
 
 ## Constructors

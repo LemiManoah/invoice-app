@@ -5,6 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - {{ $businessProfile?->name ?: config('app.name') }}</title>
+    @if($businessProfile?->logo_path)
+        <link rel="icon" type="image/png" href="{{ Storage::url($businessProfile->logo_path) }}">
+    @else
+        <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+    @endif
     @vite('resources/css/app.css')
     <script>
         function applyTheme() {

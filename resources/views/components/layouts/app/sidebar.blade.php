@@ -65,11 +65,17 @@
                             @endif
 
                             @if(auth()->user()?->can('business-profile.view'))
-                                <x-layouts.sidebar-two-level-link-parent title="Settings" icon="fas-gear" :active="request()->routeIs('business-profile*')">
+                                <x-layouts.sidebar-two-level-link-parent title="Settings" icon="fas-gear" :active="request()->routeIs('business-profile*') || request()->routeIs('roles*')">
                                     <x-layouts.sidebar-two-level-link href="{{ route('business-profile.show') }}" icon="fas-building"
                                         :active="request()->routeIs('business-profile*')">
                                         Business Profile
                                     </x-layouts.sidebar-two-level-link>
+                                    @can('viewAny', \App\Models\User::class)
+                                        <x-layouts.sidebar-two-level-link href="{{ route('roles.index') }}" icon="fas-user-tag"
+                                            :active="request()->routeIs('roles*')">
+                                            Roles
+                                        </x-layouts.sidebar-two-level-link>
+                                    @endcan
                                 </x-layouts.sidebar-two-level-link-parent>
                             @endif
                         </ul>

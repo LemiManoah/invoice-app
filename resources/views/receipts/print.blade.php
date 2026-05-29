@@ -15,7 +15,7 @@
             max-width: 860px;
             margin: 0 auto;
         }
-        @media print { body { padding: 20px; } }
+        @media print { body { padding: 20px; } .actions { display: none; } }
 
         /* Header */
         .doc-header {
@@ -94,6 +94,12 @@
     </style>
 </head>
 <body>
+
+<div class="actions" style="margin-bottom: 20px;">
+    <button type="button" onclick="window.print()" style="padding: 8px 14px; border: 0; background: #111827; color: white; text-decoration: none; cursor: pointer; margin-right: 8px; border-radius: 4px; display: inline-block; font-size: 13px;">Print</button>
+    <button type="button" onclick="shareDocument('{{ $receipt->receipt_number }}', '{{ route('receipts.pdf', $receipt) }}')" style="padding: 8px 14px; border: 0; background: #111827; color: white; text-decoration: none; cursor: pointer; margin-right: 8px; border-radius: 4px; display: inline-block; font-size: 13px;">Share</button>
+    <a href="javascript:window.close()" style="padding: 8px 14px; border: 0; background: #111827; color: white; text-decoration: none; cursor: pointer; margin-right: 8px; border-radius: 4px; display: inline-block; font-size: 13px;">Close</a>
+</div>
 
 {{-- Header --}}
 <div class="doc-header">
@@ -180,5 +186,147 @@
 @endif
 
 @include('print.partials.business-footer')
+<script>
+function shareDocument(title, url) {
+    const shareText = title + ' - Printable PDF';
+    const shareMessage = '📄 ' + shareText + '\n' + url;
+
+    // Create a simple share menu
+    const shareOptions = [
+        {
+            name: 'Email',
+            action: () => {
+                const subject = encodeURIComponent(shareText + ' - Printable Version');
+                const body = encodeURIComponent('Please find the printable version of: ' + title + '\n\n' + url);
+                window.open(`mailto:?subject=${subject}&body=${body}`);
+            }
+        },
+        {
+            name: 'WhatsApp',
+            action: () => {
+                window.open(`https://wa.me/?text=${encodeURIComponent(shareMessage)}`, '_blank');
+            }
+        },
+        {
+            name: 'Skype',
+            action: () => {
+                const topic = encodeURIComponent(shareText);
+                const message = encodeURIComponent(shareMessage);
+                window.open(`skype:?chat&topic=${topic}&message=${message}`);
+            }
+        },
+        {
+            name: 'Copy Link',
+            action: () => {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(() => {
+                        alert('Printable PDF link copied to clipboard!');
+                    });
+                } else {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = url;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    alert('Printable PDF link copied to clipboard!');
+                }
+            }
+        }
+    ];
+
+    // Create a simple dropdown menu
+    const menu = document.createElement('div');
+    menu.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        min-width: 200px;
+        font-family: Arial, sans-serif;
+    `;
+
+    const titleDiv = document.createElement('div');
+    titleDiv.textContent = 'Share Document';
+    titleDiv.style.cssText = `
+        padding: 12px 16px;
+        border-bottom: 1px solid #eee;
+        font-weight: bold;
+        font-size: 14px;
+    `;
+    menu.appendChild(titleDiv);
+
+    shareOptions.forEach(option => {
+        const button = document.createElement('button');
+        button.textContent = option.name;
+        button.style.cssText = `
+            display: block;
+            width: 100%;
+            padding: 10px 16px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+            border-bottom: 1px solid #f0f0f0;
+        `;
+        button.onmouseover = () => button.style.background = '#f8f9fa';
+        button.onmouseout = () => button.style.background = 'none';
+        button.onclick = () => {
+            option.action();
+            document.body.removeChild(menu);
+            document.body.removeChild(overlay);
+        };
+        menu.appendChild(button);
+    });
+
+    // Add close button
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Cancel';
+    closeButton.style.cssText = `
+        display: block;
+        width: 100%;
+        padding: 10px 16px;
+        border: none;
+        background: none;
+        text-align: left;
+        cursor: pointer;
+        font-size: 14px;
+        color: #666;
+    `;
+    closeButton.onmouseover = () => closeButton.style.background = '#f8f9fa';
+    closeButton.onmouseout = () => closeButton.style.background = 'none';
+    closeButton.onclick = () => {
+        document.body.removeChild(menu);
+        document.body.removeChild(overlay);
+    };
+    menu.appendChild(closeButton);
+
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 9999;
+    `;
+    overlay.onclick = () => {
+        document.body.removeChild(menu);
+        document.body.removeChild(overlay);
+    };
+
+    document.body.appendChild(overlay);
+    document.body.appendChild(menu);
+}
+</script>
 </body>
 </html>

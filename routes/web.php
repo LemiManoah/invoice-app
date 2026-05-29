@@ -46,12 +46,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('quotations/{quotation}/send', [QuotationController::class, 'send'])->name('quotations.send');
     Route::post('quotations/{quotation}/convert', [QuotationController::class, 'convert'])->name('quotations.convert');
     Route::get('quotations/{quotation}/print', [QuotationController::class, 'print'])->name('quotations.print');
+    Route::get('quotations/{quotation}/pdf', [QuotationController::class, 'downloadPdf'])->name('quotations.pdf');
 
     // Invoices
     Route::resource('invoices', InvoiceController::class)->except(['destroy']);
     Route::post('invoices/{invoice}/issue', [InvoiceController::class, 'issue'])->name('invoices.issue');
     Route::post('invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
+    Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoices.pdf');
 
     // Payments
     Route::post('invoices/{invoice}/payments', [PaymentController::class, 'store'])->name('payments.store');
@@ -60,6 +62,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('payments/{payment}/void', [PaymentController::class, 'void'])->name('payments.void');
     Route::get('receipts/{receipt}', [ReceiptController::class, 'show'])->name('receipts.show');
     Route::get('receipts/{receipt}/print', [ReceiptController::class, 'print'])->name('receipts.print');
+    Route::get('receipts/{receipt}/pdf', [ReceiptController::class, 'downloadPdf'])->name('receipts.pdf');
     Route::resource('payment-methods', PaymentMethodController::class)
         ->parameters(['payment-methods' => 'paymentMethod'])
         ->except(['show']);

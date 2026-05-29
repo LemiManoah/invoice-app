@@ -10,9 +10,11 @@ use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Quotation;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
@@ -30,7 +32,7 @@ final readonly class QuotationController extends Controller implements HasMiddle
             new Middleware('permission:quotations.send', only: ['send']),
             new Middleware('permission:quotations.convert', only: ['convert']),
             new Middleware('permission:quotations.delete', only: ['destroy']),
-            new Middleware('permission:quotations.print', only: ['print']),
+            new Middleware('permission:quotations.print', only: ['print', 'downloadPdf']),
         ];
     }
 
@@ -245,5 +247,16 @@ final readonly class QuotationController extends Controller implements HasMiddle
         $quotation->load(['customer', 'items', 'currency']);
 
         return view('quotations.print', compact('quotation'));
+    }
+
+    public function downloadPdf(Quotation $quotation): Response
+    {
+        $this->authorize('print', $quotation);
+
+        $quotation->load(['customer', 'items', 'currency']);
+
+        $pdf = Pdf::loadView('quotations.print', compact('quotation'));
+
+        return $pdf->download('quotation-' . $quotation->number . '.pdf');
     }
 }

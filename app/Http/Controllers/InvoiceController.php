@@ -18,9 +18,9 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\PaymentMethod;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\RedirectResponse;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\View\View;
@@ -35,7 +35,7 @@ final readonly class InvoiceController extends Controller implements HasMiddlewa
             new Middleware('permission:invoices.update', only: ['edit', 'update']),
             new Middleware('permission:invoices.issue', only: ['issue']),
             new Middleware('permission:invoices.cancel', only: ['cancel']),
-            new Middleware('permission:invoices.print', only: ['print']),
+            new Middleware('permission:invoices.print', only: ['print', 'downloadPdf']),
         ];
     }
 
@@ -167,5 +167,16 @@ final readonly class InvoiceController extends Controller implements HasMiddlewa
         $invoice->load(['customer', 'items']);
 
         return view('invoices.print', compact('invoice'));
+    }
+
+    public function downloadPdf(Invoice $invoice): Response
+    {
+        $this->authorize('print', $invoice);
+
+        $invoice->load(['customer', 'items']);
+
+        $pdf = Pdf::loadView('invoices.print', compact('invoice'));
+
+        return $pdf->download('invoice-' . $invoice->number . '.pdf');
     }
 }
