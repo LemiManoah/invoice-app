@@ -132,6 +132,50 @@
     </div>
     
     <x-delete-modal />
+
+    <script>
+        function searchableSelect(options, placeholder, initialValue) {
+            return {
+                options: options,
+                search: '',
+                open: false,
+                selectedValue: String(initialValue ?? ''),
+                placeholder: placeholder,
+
+                get displayLabel() {
+                    if (!this.selectedValue) return this.placeholder;
+                    const found = this.options.find(o => String(o.value) === String(this.selectedValue));
+                    return found ? found.label : this.placeholder;
+                },
+
+                get filteredOptions() {
+                    if (!this.search) return this.options;
+                    const q = this.search.toLowerCase();
+                    return this.options.filter(o => o.label.toLowerCase().includes(q));
+                },
+
+                toggleOpen() {
+                    this.open = !this.open;
+                    if (this.open) {
+                        this.$nextTick(() => this.$refs.searchInput?.focus());
+                    }
+                },
+
+                selectOption(opt) {
+                    this.selectedValue = opt.value;
+                    this.open = false;
+                    this.search = '';
+                    this.$dispatch('change', { value: opt.value });
+                },
+
+                selectFirst() {
+                    if (this.filteredOptions.length > 0) {
+                        this.selectOption(this.filteredOptions[0]);
+                    }
+                }
+            };
+        }
+    </script>
 </body>
 
 </html>

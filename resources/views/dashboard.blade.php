@@ -23,8 +23,10 @@
         </div>
     @endif
 
+    @canany(['invoices.view', 'expenses.view', 'payments.view', 'orders.view'])
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
 
+        @can('invoices.view')
         <!-- Invoices Today -->
         <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Invoices Issued</p>
@@ -35,7 +37,9 @@
                 </div>
             </div>
         </div>
+        @endcan
 
+        @can('expenses.view')
         <!-- Expenses Today -->
         <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Expenses Today</p>
@@ -46,7 +50,9 @@
                 </div>
             </div>
         </div>
+        @endcan
 
+        @can('payments.view')
         <!-- Collected Today -->
         <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Collected Today</p>
@@ -57,7 +63,9 @@
                 </div>
             </div>
         </div>
+        @endcan
 
+        @can('invoices.view')
         <!-- Unpaid Balances -->
         <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Unpaid Balances</p>
@@ -79,7 +87,9 @@
                 </div>
             </div>
         </div>
+        @endcan
 
+        @can('orders.view')
         <!-- Active Orders -->
         <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
             <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Active Orders</p>
@@ -90,9 +100,15 @@
                 </div>
             </div>
         </div>
-    </div>
+        @endcan
 
+    </div>
+    @endcanany
+
+    @canany(['orders.view', 'payments.view'])
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        @can('orders.view')
         <!-- Recent Orders -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-50 dark:border-gray-700 flex justify-between items-center">
@@ -121,12 +137,16 @@
                 @endforelse
             </div>
         </div>
+        @endcan
 
+        @can('payments.view')
         <!-- Recent Payments -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-50 dark:border-gray-700 flex justify-between items-center">
                 <h2 class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-wider">Recent Payments</h2>
+                @can('invoices.view')
                 <a href="{{ route('invoices.index') }}" class="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase">View Invoices</a>
+                @endcan
             </div>
             <div class="divide-y divide-gray-50 dark:divide-gray-700">
                 @forelse($recent_payments as $payment)
@@ -147,5 +167,8 @@
                 @endforelse
             </div>
         </div>
+        @endcan
+
     </div>
+    @endcanany
 </x-layouts.app>

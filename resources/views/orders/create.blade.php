@@ -61,14 +61,48 @@
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Item *</label>
-                                            <select :name="'items['+index+'][product_id]'" x-model="item.product_id" @change="onProductChange(index)"
-                                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                                                <option value="">Select Product</option>
-                                                <option value="custom">+ Custom Item</option>
-                                                @foreach($products as $product)
-                                                    <option value="{{ $product->id }}">{{ $product->name }}</option>
-                                                @endforeach
-                                            </select>
+                                            <div class="relative" @click.outside="item._searchOpen = false">
+                                                <input type="hidden" :name="'items['+index+'][product_id]'" x-model="item.product_id">
+                                                <button type="button"
+                                                    @click="item._searchOpen = !item._searchOpen; if(item._searchOpen) $nextTick(() => $el.parentElement.querySelector('[data-product-search]').focus())"
+                                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 dark:text-white text-sm text-left flex items-center justify-between focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                                >
+                                                    <span
+                                                        :class="!item.product_id ? 'text-gray-500 dark:text-gray-400' : ''"
+                                                        x-text="item.product_id === 'custom' ? '+ Custom Item' : (item.product_id ? (products.find(p => String(p.id) === String(item.product_id))?.name ?? 'Select Product') : 'Select Product')"
+                                                    ></span>
+                                                    <svg class="w-4 h-4 shrink-0 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                    </svg>
+                                                </button>
+                                                <div x-show="item._searchOpen"
+                                                    x-transition:enter="transition ease-out duration-75"
+                                                    x-transition:enter-start="opacity-0"
+                                                    x-transition:enter-end="opacity-100"
+                                                    x-transition:leave="transition ease-in duration-50"
+                                                    x-transition:leave-start="opacity-100"
+                                                    x-transition:leave-end="opacity-0"
+                                                    class="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg"
+                                                >
+                                                    <div class="p-1.5 border-b border-gray-100 dark:border-gray-700">
+                                                        <input type="text" x-model="item._searchText" data-product-search
+                                                            placeholder="Type to search..."
+                                                            class="w-full px-2.5 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                            @click.stop @keydown.escape="item._searchOpen = false">
+                                                    </div>
+                                                    <ul class="max-h-52 overflow-y-auto py-1">
+                                                        <template x-for="opt in filteredProducts(item._searchText)" :key="opt.value || '__empty__'">
+                                                            <li @click="item.product_id = opt.value; onProductChange(index); item._searchOpen = false; item._searchText = ''"
+                                                                class="px-3 py-1.5 text-sm cursor-pointer"
+                                                                :class="String(item.product_id) === String(opt.value) ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-medium' : 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'"
+                                                                x-text="opt.label"
+                                                            ></li>
+                                                        </template>
+                                                        <li x-show="filteredProducts(item._searchText).length === 0"
+                                                            class="px-3 py-2 text-sm text-gray-400 dark:text-gray-500 text-center italic">No options found</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div x-show="item.product_id === 'custom'" x-transition>
                                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Custom Item Name *</label>
@@ -247,15 +281,16 @@
                         <div class="space-y-4">
                             <div>
                                 <label for="customer_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer *</label>
-                                <select name="customer_id" id="customer_id" required @change="onCustomerChange($event.target.value)"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                                    <option value="">Select Customer</option>
-                                    @foreach($customers as $customer)
-                                        <option value="{{ $customer->id }}" {{ $selected_customer_id == $customer->id ? 'selected' : '' }}>
-                                            {{ $customer->full_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <div @change="onCustomerChange($event.detail.value)">
+                                    <x-searchable-select
+                                        name="customer_id"
+                                        id="customer_id"
+                                        required
+                                        placeholder="Select Customer"
+                                        :selected="$selected_customer_id"
+                                        :options="$customers->map(fn($c) => ['value' => $c->id, 'label' => $c->full_name])->toArray()"
+                                    />
+                                </div>
                             </div>
 
                             <!-- Current Measurements Display -->
@@ -294,14 +329,14 @@
 
                             <div>
                                 <label for="currency_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency *</label>
-                                <select name="currency_id" id="currency_id" required
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                                    @foreach($currencies as $currency)
-                                        <option value="{{ $currency->id }}" @selected(old('currency_id', $activeCurrency->id) == $currency->id)>
-                                            {{ $currency->code }} - {{ $currency->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <x-searchable-select
+                                    name="currency_id"
+                                    id="currency_id"
+                                    required
+                                    placeholder="Select Currency"
+                                    :selected="old('currency_id', $activeCurrency->id)"
+                                    :options="$currencies->map(fn($c) => ['value' => $c->id, 'label' => $c->code . ' - ' . $c->name])->toArray()"
+                                />
                             </div>
 
                             <div>
@@ -342,6 +377,11 @@
             const products = @json($products);
             const customers = @json($customers->map(fn($c) => ['id' => $c->id, 'gender' => $c->gender])->values());
             const allCustomerMeasurements = @json($customerMeasurementsMap);
+            const productOptions = [
+                { value: '', label: 'Select Product' },
+                { value: 'custom', label: '+ Custom Item' },
+                ...products.map(p => ({ value: String(p.id), label: p.name }))
+            ];
 
             return {
                 items: [{
@@ -349,13 +389,21 @@
                     custom_name: '',
                     quantity: 1,
                     style_notes: '',
-                    fabric_details: ''
+                    fabric_details: '',
+                    _searchOpen: false,
+                    _searchText: ''
                 }],
                 showMeasurements: false,
                 measurementsOpen: true,
                 selectedPieces: [],
                 customerGender: '{{ optional($customers->firstWhere("id", $selected_customer_id))->gender }}',
                 selectedCustomerMeasurements: allCustomerMeasurements['{{ $selected_customer_id }}'] || null,
+
+                filteredProducts(searchText) {
+                    if (!searchText) return productOptions;
+                    const q = searchText.toLowerCase();
+                    return productOptions.filter(opt => opt.label.toLowerCase().includes(q));
+                },
 
                 getProductPrice(productId) {
                     const product = products.find(p => p.id == productId);
@@ -397,7 +445,9 @@
                         custom_name: '',
                         quantity: 1,
                         style_notes: '',
-                        fabric_details: ''
+                        fabric_details: '',
+                        _searchOpen: false,
+                        _searchText: ''
                     });
                 },
 

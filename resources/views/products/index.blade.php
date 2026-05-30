@@ -26,12 +26,12 @@
                     <option value="active" @selected($status === 'active')>Active</option>
                     <option value="inactive" @selected($status === 'inactive')>Inactive</option>
                 </select>
-                <select name="category" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                    <option value="">All categories</option>
-                    @foreach($categories as $filterCategory)
-                        <option value="{{ $filterCategory->id }}" @selected((string) $category === (string) $filterCategory->id)>{{ $filterCategory->name }}</option>
-                    @endforeach
-                </select>
+                <x-searchable-select
+                    name="category"
+                    placeholder="All categories"
+                    :selected="$category"
+                    :options="$categories->map(fn($c) => ['value' => $c->id, 'label' => $c->name])->toArray()"
+                />
                 <button type="submit" class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700 transition text-sm">Filter</button>
             </div>
         </div>

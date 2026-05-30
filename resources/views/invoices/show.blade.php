@@ -281,15 +281,16 @@
 
                 <div class="mb-5">
                     <label for="currency_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency *</label>
-                    <select name="currency_id" id="currency_id" required
-                        x-model="selectedCurrencyId"
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500">
-                        @foreach($currencies as $currency)
-                            <option value="{{ $currency->id }}" @selected((int) old('currency_id', $invoice->currency_id ?? $activeCurrency->id) === $currency->id)>
-                                {{ $currency->code }} - {{ $currency->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <div @change="selectedCurrencyId = $event.detail.value">
+                        <x-searchable-select
+                            name="currency_id"
+                            id="currency_id"
+                            required
+                            placeholder="Select Currency"
+                            :selected="old('currency_id', $invoice->currency_id ?? $activeCurrency->id)"
+                            :options="$currencies->map(fn($c) => ['value' => $c->id, 'label' => $c->code . ' - ' . $c->name])->toArray()"
+                        />
+                    </div>
                     @error('currency_id')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
@@ -297,13 +298,14 @@
 
                 <div class="mb-5">
                     <label for="payment_method_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Method *</label>
-                    <select name="payment_method_id" id="payment_method_id" required
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">Select Method</option>
-                        @foreach($paymentMethods as $paymentMethod)
-                            <option value="{{ $paymentMethod->id }}" @selected((string) old('payment_method_id') === (string) $paymentMethod->id)>{{ $paymentMethod->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-searchable-select
+                        name="payment_method_id"
+                        id="payment_method_id"
+                        required
+                        placeholder="Select Method"
+                        :selected="old('payment_method_id')"
+                        :options="$paymentMethods->map(fn($m) => ['value' => $m->id, 'label' => $m->name])->toArray()"
+                    />
                     @error('payment_method_id')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror

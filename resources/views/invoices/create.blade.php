@@ -60,15 +60,14 @@
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-5">
                         <div>
                             <label for="customer_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer *</label>
-                            <select name="customer_id" id="customer_id" required
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                                <option value="">Select Customer</option>
-                                @foreach($customers as $customer)
-                                    <option value="{{ $customer->id }}" @selected((string) old('customer_id', $selectedCustomerId) === (string) $customer->id)>
-                                        {{ $customer->full_name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <x-searchable-select
+                                name="customer_id"
+                                id="customer_id"
+                                required
+                                placeholder="Select Customer"
+                                :selected="old('customer_id', $selectedCustomerId)"
+                                :options="$customers->map(fn($c) => ['value' => $c->id, 'label' => $c->full_name])->toArray()"
+                            />
                             @error('customer_id')
                                 <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
@@ -76,15 +75,16 @@
 
                         <div>
                             <label for="currency_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency *</label>
-                            <select name="currency_id" id="currency_id" required
-                                x-model="selectedCurrencyId"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                                @foreach($currencies as $currency)
-                                    <option value="{{ $currency->id }}" @selected((int) old('currency_id', $activeCurrency->id) === $currency->id)>
-                                        {{ $currency->code }} - {{ $currency->name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div @change="selectedCurrencyId = $event.detail.value">
+                                <x-searchable-select
+                                    name="currency_id"
+                                    id="currency_id"
+                                    required
+                                    placeholder="Select Currency"
+                                    :selected="old('currency_id', $activeCurrency->id)"
+                                    :options="$currencies->map(fn($c) => ['value' => $c->id, 'label' => $c->code . ' - ' . $c->name])->toArray()"
+                                />
+                            </div>
                             @error('currency_id')
                                 <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
@@ -101,15 +101,13 @@
 
                         <div>
                             <label for="order_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Link Order</label>
-                            <select name="order_id" id="order_id"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                                <option value="">No linked order</option>
-                                @foreach($orders as $order)
-                                    <option value="{{ $order->id }}" @selected((string) old('order_id', $selectedOrderId) === (string) $order->id)>
-                                        {{ $order->order_number }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <x-searchable-select
+                                name="order_id"
+                                id="order_id"
+                                placeholder="No linked order"
+                                :selected="old('order_id', $selectedOrderId)"
+                                :options="$orders->map(fn($o) => ['value' => $o->id, 'label' => $o->order_number])->toArray()"
+                            />
                             @error('order_id')
                                 <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror

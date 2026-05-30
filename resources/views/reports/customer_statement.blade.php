@@ -17,12 +17,12 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer</label>
-                <select name="customer_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                    <option value="">Select Customer</option>
-                    @foreach($customers as $listCustomer)
-                        <option value="{{ $listCustomer->id }}" @selected(request('customer_id') == $listCustomer->id)>{{ $listCustomer->full_name }}</option>
-                    @endforeach
-                </select>
+                <x-searchable-select
+                    name="customer_id"
+                    placeholder="Select Customer"
+                    :selected="request('customer_id')"
+                    :options="$customers->map(fn($c) => ['value' => $c->id, 'label' => $c->full_name])->toArray()"
+                />
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From</label>

@@ -13,19 +13,25 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="customer_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer *</label>
-                    <select name="customer_id" id="customer_id" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                        @foreach($customers as $customer)
-                            <option value="{{ $customer->id }}" @selected(old('customer_id', $order->customer_id) == $customer->id)>{{ $customer->full_name }}</option>
-                        @endforeach
-                    </select>
+                    <x-searchable-select
+                        name="customer_id"
+                        id="customer_id"
+                        required
+                        placeholder="Select Customer"
+                        :selected="old('customer_id', $order->customer_id)"
+                        :options="$customers->map(fn($c) => ['value' => $c->id, 'label' => $c->full_name])->toArray()"
+                    />
                 </div>
                 <div>
                     <label for="currency_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency *</label>
-                    <select name="currency_id" id="currency_id" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                        @foreach($currencies as $currency)
-                            <option value="{{ $currency->id }}" @selected(old('currency_id', $order->currency_id ?? $activeCurrency->id) == $currency->id)>{{ $currency->code }} - {{ $currency->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-searchable-select
+                        name="currency_id"
+                        id="currency_id"
+                        required
+                        placeholder="Select Currency"
+                        :selected="old('currency_id', $order->currency_id ?? $activeCurrency->id)"
+                        :options="$currencies->map(fn($c) => ['value' => $c->id, 'label' => $c->code . ' - ' . $c->name])->toArray()"
+                    />
                 </div>
                 <div>
                     <label for="order_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Order Date *</label>

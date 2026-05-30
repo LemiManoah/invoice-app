@@ -31,15 +31,13 @@
 
             <div class="mb-5">
                 <label for="product_category_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
-                <select name="product_category_id" id="product_category_id"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">Select Category (optional)</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}" {{ old('product_category_id') == $category->id ? 'selected' : '' }}>
-                            {{ $category->name }}
-                        </option>
-                    @endforeach
-                </select>
+                <x-searchable-select
+                    name="product_category_id"
+                    id="product_category_id"
+                    placeholder="Select Category (optional)"
+                    :selected="old('product_category_id')"
+                    :options="$categories->map(fn($c) => ['value' => $c->id, 'label' => $c->name])->toArray()"
+                />
             </div>
 
             <div class="mb-5">

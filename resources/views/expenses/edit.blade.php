@@ -17,19 +17,25 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="expense_category_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category *</label>
-                    <select name="expense_category_id" id="expense_category_id" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}" @selected(old('expense_category_id', $expense->expense_category_id) == $category->id)>{{ $category->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-searchable-select
+                        name="expense_category_id"
+                        id="expense_category_id"
+                        required
+                        placeholder="Select Category"
+                        :selected="old('expense_category_id', $expense->expense_category_id)"
+                        :options="$categories->map(fn($c) => ['value' => $c->id, 'label' => $c->name])->toArray()"
+                    />
                 </div>
                 <div>
                     <label for="currency_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency *</label>
-                    <select name="currency_id" id="currency_id" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                        @foreach($currencies as $currency)
-                            <option value="{{ $currency->id }}" @selected(old('currency_id', $expense->currency_id ?? $activeCurrency->id) == $currency->id)>{{ $currency->code }} - {{ $currency->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-searchable-select
+                        name="currency_id"
+                        id="currency_id"
+                        required
+                        placeholder="Select Currency"
+                        :selected="old('currency_id', $expense->currency_id ?? $activeCurrency->id)"
+                        :options="$currencies->map(fn($c) => ['value' => $c->id, 'label' => $c->code . ' - ' . $c->name])->toArray()"
+                    />
                     @error('currency_id')
                         <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
                     @enderror
@@ -44,11 +50,14 @@
                 </div>
                 <div>
                     <label for="payment_method_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Method *</label>
-                    <select name="payment_method_id" id="payment_method_id" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm">
-                        @foreach($paymentMethods as $paymentMethod)
-                            <option value="{{ $paymentMethod->id }}" @selected((string) old('payment_method_id', $expense->payment_method_id) === (string) $paymentMethod->id)>{{ $paymentMethod->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-searchable-select
+                        name="payment_method_id"
+                        id="payment_method_id"
+                        required
+                        placeholder="Select Payment Method"
+                        :selected="old('payment_method_id', $expense->payment_method_id)"
+                        :options="$paymentMethods->map(fn($m) => ['value' => $m->id, 'label' => $m->name])->toArray()"
+                    />
                     @error('payment_method_id')
                         <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
                     @enderror
