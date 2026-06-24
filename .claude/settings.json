@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /d \"c:\\\\Users\\\\user\\\\Desktop\\\\Invoicing\\\\invoice-app\")",
+      "Bash(Get-ChildItem -Recurse -Filter \"*.vue\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object -ExpandProperty FullName)"
+    ]
+  }
+}

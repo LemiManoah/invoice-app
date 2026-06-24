@@ -51,11 +51,6 @@
                 </a>
             @endcan
 
-            @include('components.share-actions', [
-                'shareUrl' => route('quotations.print', $quotation),
-                'shareText' => "Quotation {$quotation->quotation_number}"
-            ])
-
             @can('delete', $quotation)
                 <button type="button"
                     @click="$dispatch('open-delete-modal', { url: '{{ route('quotations.destroy', $quotation) }}', item: 'quotation {{ $quotation->quotation_number }}' })"

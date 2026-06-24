@@ -11,11 +11,6 @@
         </a>
     </div>
 
-    @include('components.share-actions', [
-        'shareUrl' => route('receipts.print', $receipt),
-        'shareText' => "Receipt {$receipt->receipt_number}"
-    ])
-
     <div class="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
         <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700">
             <p class="text-sm text-gray-500 dark:text-gray-400">Receipt Date</p>
