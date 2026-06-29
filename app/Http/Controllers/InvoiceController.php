@@ -19,6 +19,7 @@ use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
