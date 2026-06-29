@@ -29,7 +29,7 @@
         @can('invoices.view')
         <!-- Invoices Today -->
         <div class="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
-            <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Invoices Issued</p>
+            <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Invoices Issued Today</p>
             <div class="flex items-center justify-between">
                 <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['invoices_issued_today'] }}</span>
                 <div class="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded text-indigo-600">
