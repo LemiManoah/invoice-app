@@ -104,6 +104,25 @@
 
     </div>
     @endcanany
+    <!-- Quick Stats -->
+     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        @can('invoices.view')
+        <!-- Invoices Chart -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Invoices Issued (Last 30 Days)</h2>
+            <canvas id="invoicesChart" class="w-full h-64"></canvas>
+        </div>
+        @endcan
+
+        @can('payments.view')
+        <!-- Payments Chart -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Payments Collected (Last 30 Days)</h2>
+            <canvas id="paymentsChart" class="w-full h-64"></canvas>
+        </div>
+        @endcan
+
+
 
     @canany(['orders.view', 'payments.view'])
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
