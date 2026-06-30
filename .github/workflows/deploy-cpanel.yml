@@ -1,5 +1,6 @@
-name: Deploy Laravel to cPanel via FTP
+name: Deploy to cPanel
 
+# Triggers on every push to main / master
 on:
   push:
     branches:
@@ -8,29 +9,35 @@ on:
 
 jobs:
   deploy:
-    name: Build and Deploy
+    name: Build & Deploy (FTP)
     runs-on: ubuntu-latest
+
+    # All secrets surfaced as env vars so the linter knows about them
     env:
-      CPANEL_SSH_HOST:     ${{ secrets.CPANEL_SSH_HOST }}
-      CPANEL_SSH_PORT:     ${{ secrets.CPANEL_SSH_PORT }}
-      CPANEL_SSH_USERNAME: ${{ secrets.CPANEL_SSH_USERNAME }}
-      CPANEL_SSH_PASSWORD: ${{ secrets.CPANEL_SSH_PASSWORD }}
-      CPANEL_APP_DIR:      ${{ secrets.CPANEL_APP_DIR }}
+      FTP_HOST:           ${{ secrets.FTP_HOST }}
+      FTP_USERNAME:       ${{ secrets.FTP_USERNAME }}
+      FTP_PASSWORD:       ${{ secrets.FTP_PASSWORD }}
+      FTP_SERVER_DIR:     ${{ secrets.FTP_SERVER_DIR }}
+      DEPLOY_HOOK_URL:    ${{ secrets.DEPLOY_HOOK_URL }}
 
     steps:
-      # ── 1. Source ────────────────────────────────────────────────────────────
+
+      # ── 1. SOURCE ──────────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── 2. PHP ───────────────────────────────────────────────────────────────
+      # ── 2. PHP ─────────────────────────────────────────────────────────────────
+      #   Match the PHP version your cPanel server actually runs.
+      #   Check it in cPanel → MultiPHP Manager and update '8.3' if needed.
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mbstring, bcmath, ctype, fileinfo, json, openssl, pdo, tokenizer, xml, curl, zip
+          extensions: mbstring, bcmath, ctype, fileinfo, json, openssl, pdo, pdo_mysql, tokenizer, xml, curl, zip, intl
           tools: composer:v2
+          coverage: none
 
-      # ── 3. Composer cache + install ──────────────────────────────────────────
+      # ── 3. COMPOSER ────────────────────────────────────────────────────────────
       - name: Get Composer cache directory
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
@@ -39,42 +46,32 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          key:          ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
 
       - name: Install PHP dependencies
         run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-      # ── 4. Node + pnpm ───────────────────────────────────────────────────────
+      # ── 4. NODE + NPM ──────────────────────────────────────────────────────────
+      #   This project uses npm (package-lock.json). Do not change to pnpm/yarn.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        run: echo "store=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.pnpm-cache.outputs.store }}
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: ${{ runner.os }}-pnpm-
+          node-version: '20'
+          cache: 'npm'          # uses package-lock.json as cache key automatically
 
       - name: Install frontend dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci              # exact reproducible install from package-lock.json
 
-      # ── 5. Build frontend assets ─────────────────────────────────────────────
-      - name: Build frontend assets
-        run: pnpm run build
+      # ── 5. BUILD FRONTEND ASSETS ───────────────────────────────────────────────
+      - name: Build frontend assets (Vite + Tailwind)
+        run: npm run build
 
-      # ── 6. Prepare storage structure ─────────────────────────────────────────
+      # ── 6. PREPARE STORAGE SKELETON ────────────────────────────────────────────
+      #   Creates the directory structure so FTP uploads it.
+      #   The .gitkeep files ensure empty dirs are included.
+      #   Real logs, sessions, and compiled views on the server are excluded
+      #   from FTP in step 9 so they are never overwritten.
       - name: Prepare storage directories
         run: |
           mkdir -p storage/app/public \
@@ -83,58 +80,48 @@ jobs:
                    storage/framework/views \
                    storage/logs \
                    bootstrap/cache
-          touch storage/framework/cache/.cpanel-keep \
-                storage/framework/cache/data/.cpanel-keep \
-                storage/framework/sessions/.cpanel-keep \
-                storage/framework/views/.cpanel-keep \
-                storage/logs/.cpanel-keep \
-                bootstrap/cache/.cpanel-keep
 
-      # ── 7. Clear stale CI-side caches ────────────────────────────────────────
-      #
-      #  IMPORTANT: We do NOT run config:cache / route:cache / view:cache here.
-      #  Those commands embed absolute paths from the CI runner
-      #  (/home/runner/work/…) into the compiled files. Uploading those to
-      #  cPanel would break the app because the paths don't exist on the server.
-      #  All Artisan caching is done in step 9 (post-deploy SSH) on the server
-      #  itself, where the paths are correct.
-      #
-      - name: Clear any stale framework caches
-        run: php artisan optimize:clear || true
+          touch storage/app/public/.gitkeep \
+                storage/framework/cache/data/.gitkeep \
+                storage/framework/sessions/.gitkeep \
+                storage/framework/views/.gitkeep \
+                storage/logs/.gitkeep \
+                bootstrap/cache/.gitkeep
 
-      # ── 8. Verify build artefacts before upload ───────────────────────────────
+      # ── 7. VERIFY BUILD ARTEFACTS ──────────────────────────────────────────────
+      #   Catches a bad build before it reaches production.
       - name: Verify build artefacts
         run: |
-          test -f .htaccess                        || (echo "Missing .htaccess"              && exit 1)
-          test -f public/.htaccess                 || (echo "Missing public/.htaccess"       && exit 1)
-          test -f public/index.php                 || (echo "Missing public/index.php"       && exit 1)
-          test -f public/build/manifest.json       || (echo "Missing Vite manifest"          && exit 1)
-          test -d storage/framework/cache          || (echo "Missing cache dir"              && exit 1)
-          test -d storage/framework/cache/data     || (echo "Missing cache/data dir"         && exit 1)
-          test -d storage/framework/sessions       || (echo "Missing sessions dir"           && exit 1)
-          test -d storage/framework/views          || (echo "Missing views dir"              && exit 1)
-          test -d storage/logs                     || (echo "Missing logs dir"               && exit 1)
-          echo "All artefacts present ✓"
+          test -f public/.htaccess           || { echo "::error::Missing public/.htaccess";     exit 1; }
+          test -f public/index.php           || { echo "::error::Missing public/index.php";     exit 1; }
+          test -f public/deploy-hook.php     || { echo "::error::Missing deploy-hook.php";      exit 1; }
+          test -f public/build/manifest.json || { echo "::error::Missing Vite manifest.json";   exit 1; }
+          test -d vendor                     || { echo "::error::vendor/ directory missing";    exit 1; }
+          echo "✓ All artefacts present"
 
-      # ── 9. Upload via FTP ────────────────────────────────────────────────────
-      - name: Deploy to cPanel via FTP
+      # ── 8. UPLOAD VIA FTP ──────────────────────────────────────────────────────
+      #   Uploads all built files to cPanel.
+      #   dangerous-clean-slate: false  → never wipes server files.
+      #   The .env, storage content, compiled caches and sessions are excluded
+      #   so the server's live data is never overwritten.
+      - name: Upload files via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server:              ${{ secrets.FTP_HOST }}
-          username:            ${{ secrets.FTP_USERNAME }}
-          password:            ${{ secrets.FTP_PASSWORD }}
-          server-dir:          ${{ secrets.FTP_SERVER_DIR }}
-          local-dir:           ./
+          server:                ${{ env.FTP_HOST }}
+          username:              ${{ env.FTP_USERNAME }}
+          password:              ${{ env.FTP_PASSWORD }}
+          server-dir:            ${{ env.FTP_SERVER_DIR }}
+          local-dir:             ./
           dangerous-clean-slate: false
+          timeout:               120000   # 2 min per file; helps on slow cPanel hosts
           exclude: |
-            **/.git*
-            **/.git*/**
+            **/.git/**
+            **/.gitattributes
             **/node_modules/**
             **/tests/**
             **/.github/**
             **/.env
             **/.env.*
-            **/.deploy.env
             **/public/hot
             **/public/storage
             **/public/storage/**
@@ -142,43 +129,103 @@ jobs:
             **/storage/framework/sessions/sess_*
             **/storage/framework/views/*.php
             **/bootstrap/cache/*.php
-            **/deploy-cpanel.sh
+            **/.phpunit.cache/**
+            **/.DS_Store
+            **/Thumbs.db
             **/npm-debug.log
             **/pnpm-debug.log
 
-      # ── 10. Post-deploy: run Artisan on the server ────────────────────────────
+      # ── 9. TRIGGER DEPLOYMENT HOOK ─────────────────────────────────────────────
+      #   Calls deploy-hook.php on the live server via HTTPS.
+      #   The hook runs:  migrate → optimize:clear → config/route/view/event cache
+      #                   → storage:link
+      #   It is protected by DEPLOY_HOOK_TOKEN which must match .env on the server.
       #
-      #  All caching commands run HERE, on the actual server, so the compiled
-      #  files contain correct server-side paths.
-      #
-      - name: Post-deploy Artisan commands (via SSH)
-        if: ${{ env.CPANEL_SSH_HOST != '' && env.CPANEL_SSH_USERNAME != '' && env.CPANEL_SSH_PASSWORD != '' && env.CPANEL_APP_DIR != '' }}
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host:     ${{ env.CPANEL_SSH_HOST }}
-          port:     ${{ env.CPANEL_SSH_PORT || '22' }}
-          username: ${{ env.CPANEL_SSH_USERNAME }}
-          password: ${{ env.CPANEL_SSH_PASSWORD }}
-          script_stop: true
-          script: |
-            cd "${{ env.CPANEL_APP_DIR }}"
+      #   On first deploy the hook also auto-generates APP_KEY if .env is missing it.
+      - name: Run migrations & rebuild caches (via deploy hook)
+        run: |
+          echo "Calling deployment hook..."
 
-            # Ensure writable directories exist
-            mkdir -p storage/app/public storage/framework/cache/data \
-                     storage/framework/sessions storage/framework/views \
-                     storage/logs bootstrap/cache
-            chmod -R u+rwX storage bootstrap/cache
+          HTTP_RESPONSE=$(curl --silent \
+            --max-time 180 \
+            --retry 3 \
+            --retry-delay 5 \
+            --write-out "\n%{http_code}" \
+            "${{ env.DEPLOY_HOOK_URL }}")
 
-            # Re-link storage
-            rm -rf public/storage
-            php artisan storage:link
+          HTTP_BODY=$(echo "$HTTP_RESPONSE" | head -n -1)
+          HTTP_CODE=$(echo "$HTTP_RESPONSE" | tail -n 1)
 
-            # Database
-            php artisan migrate --force
-            php artisan db:seed --force
+          echo "HTTP status: $HTTP_CODE"
+          echo ""
+          echo "Hook output:"
+          echo "$HTTP_BODY" | python3 -m json.tool 2>/dev/null || echo "$HTTP_BODY"
 
-            # Clear old caches and rebuild with correct server paths
-            php artisan optimize:clear
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo ""
+            echo "::error::Deploy hook returned HTTP $HTTP_CODE — check the output above."
+            exit 1
+          fi
+
+          echo ""
+          echo "✓ Deploy complete"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# REQUIRED GITHUB SECRETS
+# Settings → Secrets and variables → Actions → New repository secret
+#
+#  FTP_HOST          cPanel FTP hostname      e.g. ftp.yourdomain.com
+#  FTP_USERNAME      FTP username
+#  FTP_PASSWORD      FTP password
+#  FTP_SERVER_DIR    Remote upload path       e.g. /public_html/ticketminta/
+#                    Must end with a trailing slash.
+#
+#  DEPLOY_HOOK_URL   Full HTTPS URL to hook   e.g. https://yourdomain.com/deploy-hook.php
+#  DEPLOY_HOOK_TOKEN A long random secret     e.g. run: openssl rand -base64 40
+#                    ↑ Also add this to your server's .env as:
+#                      DEPLOY_HOOK_TOKEN=same-value-here
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# FIRST-DEPLOY CHECKLIST  (do these once via cPanel File Manager / phpMyAdmin)
+# ─────────────────────────────────────────────────────────────────────────────
+#
+#  1. Upload your app once (or let the workflow do it).
+#
+#  2. In cPanel File Manager, open the app folder and create .env:
+#       Copy .env.example → .env
+#       Edit .env and set:
+#         APP_NAME=TicketMinta
+#         APP_ENV=production
+#         APP_DEBUG=false
+#         APP_URL=https://yourdomain.com
+#
+#         DB_CONNECTION=mariadb
+#         DB_HOST=localhost
+#         DB_PORT=3306
+#         DB_DATABASE=your_db_name
+#         DB_USERNAME=your_db_user
+#         DB_PASSWORD=your_db_password
+#
+#         SESSION_DRIVER=database
+#         CACHE_STORE=database
+#         QUEUE_CONNECTION=database
+#
+#         DEPLOY_HOOK_TOKEN=your-random-token   ← same value as the GitHub secret
+#
+#  3. Point your domain document root to:
+#       /home/username/ticketminta/public
+#     (cPanel → Domains → Document Root)
+#
+#  4. Push to main — the workflow uploads files and calls the deploy hook.
+#     The hook auto-generates APP_KEY if missing, runs migrations, and
+#     rebuilds all caches. Check the GitHub Actions log for full output.
+#
+#  5. After first deploy, seed the database once:
+#     Open https://yourdomain.com/deploy-hook.php?token=YOUR_TOKEN&seed=1
+#     ... or add a one-time seeder call in the hook (see deploy-hook.php).
+#     Alternatively run the seeder via cPanel's PHP script runner if available.
+#
+#  6. Set up the scheduler cron in cPanel → Cron Jobs:
+#     * * * * * php /home/username/ticketminta/artisan schedule:run >> /dev/null 2>&1
+#
+# ─────────────────────────────────────────────────────────────────────────────
