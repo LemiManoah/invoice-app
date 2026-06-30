@@ -57,7 +57,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'          # uses package-lock.json as cache key automatically
 
       - name: Install frontend dependencies
@@ -99,41 +99,51 @@ jobs:
           test -d vendor                     || { echo "::error::vendor/ directory missing";    exit 1; }
           echo "✓ All artefacts present"
 
-      # ── 8. UPLOAD VIA FTP ──────────────────────────────────────────────────────
-      #   Uploads all built files to cPanel.
-      #   dangerous-clean-slate: false  → never wipes server files.
-      #   The .env, storage content, compiled caches and sessions are excluded
-      #   so the server's live data is never overwritten.
-      - name: Upload files via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server:                ${{ env.FTP_HOST }}
-          username:              ${{ env.FTP_USERNAME }}
-          password:              ${{ env.FTP_PASSWORD }}
-          server-dir:            ${{ env.FTP_SERVER_DIR }}
-          local-dir:             ./
-          dangerous-clean-slate: false
-          timeout:               120000   # 2 min per file; helps on slow cPanel hosts
-          exclude: |
-            **/.git/**
-            **/.gitattributes
-            **/node_modules/**
-            **/tests/**
-            **/.github/**
-            **/.env
-            **/.env.*
-            **/public/hot
-            **/public/storage
-            **/public/storage/**
-            **/storage/logs/*.log
-            **/storage/framework/sessions/sess_*
-            **/storage/framework/views/*.php
-            **/bootstrap/cache/*.php
-            **/.phpunit.cache/**
-            **/.DS_Store
-            **/Thumbs.db
-            **/npm-debug.log
-            **/pnpm-debug.log
+      # ── 8. UPLOAD VIA LFTP ─────────────────────────────────────────────────────
+      #   Uses lftp mirror instead of SamKirkland/FTP-Deploy-Action to avoid
+      #   "Server sent FIN packet unexpectedly" errors caused by cPanel dropping
+      #   FTP data-channel connections under load or after idle timeouts.
+      #   lftp gives us: passive mode, automatic retries, tunable parallelism,
+      #   and --continue so partial uploads resume rather than restart.
+      - name: Upload files via lftp
+        env:
+          FTP_HOST:       ${{ env.FTP_HOST }}
+          FTP_USERNAME:   ${{ env.FTP_USERNAME }}
+          FTP_PASSWORD:   ${{ env.FTP_PASSWORD }}
+          FTP_SERVER_DIR: ${{ env.FTP_SERVER_DIR }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y -qq
+          sudo apt-get install -y -qq lftp
+
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_HOST" -e "
+            set ftp:passive-mode on;
+            set net:timeout 60;
+            set net:max-retries 5;
+            set net:reconnect-interval-base 10;
+            set net:reconnect-interval-max 90;
+            mirror -R --verbose --continue --only-newer --parallel=2 \
+              --exclude-glob .git \
+              --exclude-glob .gitattributes \
+              --exclude-glob .github \
+              --exclude-glob node_modules \
+              --exclude-glob tests \
+              --exclude-glob .phpunit.cache \
+              --exclude-glob .env \
+              --exclude-glob .env.* \
+              --exclude-glob public/hot \
+              --exclude-glob public/storage \
+              --exclude-glob 'storage/logs/*.log' \
+              --exclude-glob 'storage/framework/sessions/sess_*' \
+              --exclude-glob 'storage/framework/views/*.php' \
+              --exclude-glob 'bootstrap/cache/*.php' \
+              --exclude-glob .DS_Store \
+              --exclude-glob Thumbs.db \
+              --exclude-glob npm-debug.log \
+              --exclude-glob pnpm-debug.log \
+              ./ $FTP_SERVER_DIR;
+            bye
+          "
 
       # ── 9. TRIGGER DEPLOYMENT HOOK ─────────────────────────────────────────────
       #   Calls deploy-hook.php on the live server via HTTPS.
