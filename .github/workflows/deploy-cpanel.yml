@@ -1,0 +1,184 @@
+name: Deploy Laravel to cPanel via FTP
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    env:
+      CPANEL_SSH_HOST:     ${{ secrets.CPANEL_SSH_HOST }}
+      CPANEL_SSH_PORT:     ${{ secrets.CPANEL_SSH_PORT }}
+      CPANEL_SSH_USERNAME: ${{ secrets.CPANEL_SSH_USERNAME }}
+      CPANEL_SSH_PASSWORD: ${{ secrets.CPANEL_SSH_PASSWORD }}
+      CPANEL_APP_DIR:      ${{ secrets.CPANEL_APP_DIR }}
+
+    steps:
+      # ── 1. Source ────────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. PHP ───────────────────────────────────────────────────────────────
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, bcmath, ctype, fileinfo, json, openssl, pdo, tokenizer, xml, curl, zip
+          tools: composer:v2
+
+      # ── 3. Composer cache + install ──────────────────────────────────────────
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+      # ── 4. Node + pnpm ───────────────────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "store=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.store }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: ${{ runner.os }}-pnpm-
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      # ── 5. Build frontend assets ─────────────────────────────────────────────
+      - name: Build frontend assets
+        run: pnpm run build
+
+      # ── 6. Prepare storage structure ─────────────────────────────────────────
+      - name: Prepare storage directories
+        run: |
+          mkdir -p storage/app/public \
+                   storage/framework/cache/data \
+                   storage/framework/sessions \
+                   storage/framework/views \
+                   storage/logs \
+                   bootstrap/cache
+          touch storage/framework/cache/.cpanel-keep \
+                storage/framework/cache/data/.cpanel-keep \
+                storage/framework/sessions/.cpanel-keep \
+                storage/framework/views/.cpanel-keep \
+                storage/logs/.cpanel-keep \
+                bootstrap/cache/.cpanel-keep
+
+      # ── 7. Clear stale CI-side caches ────────────────────────────────────────
+      #
+      #  IMPORTANT: We do NOT run config:cache / route:cache / view:cache here.
+      #  Those commands embed absolute paths from the CI runner
+      #  (/home/runner/work/…) into the compiled files. Uploading those to
+      #  cPanel would break the app because the paths don't exist on the server.
+      #  All Artisan caching is done in step 9 (post-deploy SSH) on the server
+      #  itself, where the paths are correct.
+      #
+      - name: Clear any stale framework caches
+        run: php artisan optimize:clear || true
+
+      # ── 8. Verify build artefacts before upload ───────────────────────────────
+      - name: Verify build artefacts
+        run: |
+          test -f .htaccess                        || (echo "Missing .htaccess"              && exit 1)
+          test -f public/.htaccess                 || (echo "Missing public/.htaccess"       && exit 1)
+          test -f public/index.php                 || (echo "Missing public/index.php"       && exit 1)
+          test -f public/build/manifest.json       || (echo "Missing Vite manifest"          && exit 1)
+          test -d storage/framework/cache          || (echo "Missing cache dir"              && exit 1)
+          test -d storage/framework/cache/data     || (echo "Missing cache/data dir"         && exit 1)
+          test -d storage/framework/sessions       || (echo "Missing sessions dir"           && exit 1)
+          test -d storage/framework/views          || (echo "Missing views dir"              && exit 1)
+          test -d storage/logs                     || (echo "Missing logs dir"               && exit 1)
+          echo "All artefacts present ✓"
+
+      # ── 9. Upload via FTP ────────────────────────────────────────────────────
+      - name: Deploy to cPanel via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server:              ${{ secrets.FTP_HOST }}
+          username:            ${{ secrets.FTP_USERNAME }}
+          password:            ${{ secrets.FTP_PASSWORD }}
+          server-dir:          ${{ secrets.FTP_SERVER_DIR }}
+          local-dir:           ./
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/tests/**
+            **/.github/**
+            **/.env
+            **/.env.*
+            **/.deploy.env
+            **/public/hot
+            **/public/storage
+            **/public/storage/**
+            **/storage/logs/*.log
+            **/storage/framework/sessions/sess_*
+            **/storage/framework/views/*.php
+            **/bootstrap/cache/*.php
+            **/deploy-cpanel.sh
+            **/npm-debug.log
+            **/pnpm-debug.log
+
+      # ── 10. Post-deploy: run Artisan on the server ────────────────────────────
+      #
+      #  All caching commands run HERE, on the actual server, so the compiled
+      #  files contain correct server-side paths.
+      #
+      - name: Post-deploy Artisan commands (via SSH)
+        if: ${{ env.CPANEL_SSH_HOST != '' && env.CPANEL_SSH_USERNAME != '' && env.CPANEL_SSH_PASSWORD != '' && env.CPANEL_APP_DIR != '' }}
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host:     ${{ env.CPANEL_SSH_HOST }}
+          port:     ${{ env.CPANEL_SSH_PORT || '22' }}
+          username: ${{ env.CPANEL_SSH_USERNAME }}
+          password: ${{ env.CPANEL_SSH_PASSWORD }}
+          script_stop: true
+          script: |
+            cd "${{ env.CPANEL_APP_DIR }}"
+
+            # Ensure writable directories exist
+            mkdir -p storage/app/public storage/framework/cache/data \
+                     storage/framework/sessions storage/framework/views \
+                     storage/logs bootstrap/cache
+            chmod -R u+rwX storage bootstrap/cache
+
+            # Re-link storage
+            rm -rf public/storage
+            php artisan storage:link
+
+            # Database
+            php artisan migrate --force
+            php artisan db:seed --force
+
+            # Clear old caches and rebuild with correct server paths
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
