@@ -100,11 +100,12 @@ jobs:
           echo "✓ All artefacts present"
 
       # ── 8. UPLOAD VIA LFTP ─────────────────────────────────────────────────────
-      #   Uses lftp mirror instead of SamKirkland/FTP-Deploy-Action to avoid
-      #   "Server sent FIN packet unexpectedly" errors caused by cPanel dropping
-      #   FTP data-channel connections under load or after idle timeouts.
-      #   lftp gives us: passive mode, automatic retries, tunable parallelism,
-      #   and --continue so partial uploads resume rather than restart.
+      #   node_modules is deleted before upload — assets are already compiled so
+      #   it isn't needed on the server, and removing it guarantees lftp never
+      #   touches those tens of thousands of files regardless of glob matching.
+      - name: Remove node_modules before upload
+        run: rm -rf node_modules
+
       - name: Upload files via lftp
         env:
           FTP_HOST:       ${{ env.FTP_HOST }}
@@ -127,7 +128,6 @@ jobs:
               --exclude-glob .git \
               --exclude-glob .gitattributes \
               --exclude-glob .github \
-              --exclude-glob node_modules \
               --exclude-glob tests \
               --exclude-glob .phpunit.cache \
               --exclude-glob .env \
