@@ -62,6 +62,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('payments/{payment}/void', [PaymentController::class, 'void'])->name('payments.void');
     Route::get('receipts/{receipt}', [ReceiptController::class, 'show'])->name('receipts.show');
     Route::get('receipts/{receipt}/print', [ReceiptController::class, 'print'])->name('receipts.print');
+    Route::get('receipts/{receipt}/print-thermal', [ReceiptController::class, 'printThermal'])->name('receipts.print.thermal');
     Route::get('receipts/{receipt}/pdf', [ReceiptController::class, 'downloadPdf'])->name('receipts.pdf');
     Route::resource('payment-methods', PaymentMethodController::class)
         ->parameters(['payment-methods' => 'paymentMethod'])

@@ -6,9 +6,23 @@
             </a>
             <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $receipt->receipt_number }}</h1>
         </div>
-        <a href="{{ route('receipts.print', $receipt) }}" class="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-800 transition">
-            <i class="fas fa-print mr-2"></i> Print Receipt
-        </a>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('receipts.print', $receipt) }}" class="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-800 transition">
+                <i class="fas fa-print mr-2"></i> Print Receipt
+            </a>
+            <div x-data="{ open: false }" class="relative">
+                <button type="button" @click="open = !open" @click.outside="open = false"
+                    class="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+                    <i class="fas fa-receipt mr-2"></i> POS Print
+                </button>
+                <div x-show="open" x-cloak x-transition class="absolute right-0 z-20 mt-2 w-40 rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                    <a href="{{ route('receipts.print.thermal', ['receipt' => $receipt, 'size' => 80]) }}" target="_blank" rel="noopener"
+                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">80mm Roll</a>
+                    <a href="{{ route('receipts.print.thermal', ['receipt' => $receipt, 'size' => 58]) }}" target="_blank" rel="noopener"
+                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">58mm Roll</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">

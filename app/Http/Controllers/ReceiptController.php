@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Receipt;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -17,7 +18,7 @@ final readonly class ReceiptController extends Controller implements HasMiddlewa
     {
         return [
             new Middleware('permission:receipts.view', only: ['index', 'show']),
-            new Middleware('permission:receipts.print', only: ['print', 'downloadPdf']),
+            new Middleware('permission:receipts.print', only: ['print', 'printThermal', 'downloadPdf']),
         ];
     }
 
@@ -37,6 +38,18 @@ final readonly class ReceiptController extends Controller implements HasMiddlewa
         $receipt->load(['payment.invoice.customer', 'payment.receiver']);
 
         return view('receipts.print', compact('receipt'));
+    }
+
+    public function printThermal(Request $request, Receipt $receipt): View
+    {
+        $this->authorize('print', $receipt);
+
+        $receipt->load(['payment.invoice.customer', 'payment.receiver']);
+
+        $paperWidth = (int) $request->query('size', 80);
+        $paperWidth = in_array($paperWidth, [58, 80], true) ? $paperWidth : 80;
+
+        return view('receipts.print-thermal', compact('receipt', 'paperWidth'));
     }
 
     public function downloadPdf(Receipt $receipt): Response
