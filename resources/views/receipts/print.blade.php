@@ -79,6 +79,16 @@
             min-width: 140px;
         }
 
+        /* Remaining balance */
+        .balance-label {
+            font-size: 13px; font-weight: 700; text-transform: uppercase;
+            text-align: right; padding: 10px 12px; color: #dc2626;
+        }
+        .balance-value {
+            font-size: 13px; font-weight: 700;
+            text-align: right; padding: 10px 12px; color: #dc2626;
+        }
+
         /* Signature */
         .signature-section { margin-top: 40px; display: flex; justify-content: flex-end; }
         .signature-img { max-height: 64px; max-width: 180px; object-fit: contain; display: block; margin: 0 auto 6px; }
@@ -172,6 +182,15 @@
             <td class="amount-label">AMOUNT RECEIVED</td>
             <td class="amount-value">{{ $currencyFormatter->formatValue($receipt->payment->amount, 2) }}</td>
         </tr>
+
+        @if($receipt->payment->invoice->balance_due > 0)
+            {{-- Remaining balance --}}
+            <tr style="border: none;">
+                <td colspan="2" style="border: none;"></td>
+                <td class="balance-label">REMAINING BALANCE</td>
+                <td class="balance-value">{{ $currencyFormatter->formatValue($receipt->payment->invoice->balance_due, 2) }}</td>
+            </tr>
+        @endif
     </tbody>
 </table>
 

@@ -55,6 +55,12 @@
                 <p class="text-base font-bold text-gray-900 dark:text-white uppercase">Amount Received</p>
                 <p class="text-2xl font-black text-green-600 font-mono">{{ $currencyFormatter->formatValue($receipt->payment->amount, 2) }}</p>
             </div>
+            @if($receipt->payment->invoice->balance_due > 0)
+                <div class="pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                    <p class="text-base font-bold text-gray-900 dark:text-white uppercase">Remaining Balance</p>
+                    <p class="text-xl font-black text-red-600 font-mono">{{ $currencyFormatter->formatValue($receipt->payment->invoice->balance_due, 2) }}</p>
+                </div>
+            @endif
         </div>
     </div>
 </x-layouts.app>

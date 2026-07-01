@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Receipt {{ $receipt->receipt_number }}</title>
+    <title>Quotation {{ $quotation->quotation_number }}</title>
     <script>window.addEventListener('load', () => window.print());</script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,6 +36,7 @@
         .row .label { white-space: nowrap; }
         .row .value { text-align: right; word-break: break-word; }
 
+        .item-row { margin-bottom: 1.2mm; }
         .item-desc { margin-bottom: 0.6mm; word-break: break-word; }
 
         .amount-box { margin-top: 2mm; padding: 1.5mm 0; }
@@ -68,32 +69,43 @@
 </div>
 
 <div class="rule-solid"></div>
-<div class="center bold">RECEIPT</div>
+<div class="center bold">QUOTATION</div>
 <div class="rule"></div>
 
-<div class="row"><span class="label">Receipt #:</span><span class="value">{{ $receipt->receipt_number }}</span></div>
-<div class="row"><span class="label">Date:</span><span class="value">{{ $receipt->issued_date->format('M d, Y') }}</span></div>
-<div class="row"><span class="label">Invoice #:</span><span class="value">{{ $receipt->payment->invoice->invoice_number }}</span></div>
-<div class="row"><span class="label">Received From:</span><span class="value">{{ $receipt->payment->invoice->customer->full_name }}</span></div>
+<div class="row"><span class="label">Quotation #:</span><span class="value">{{ $quotation->quotation_number }}</span></div>
+<div class="row"><span class="label">Date:</span><span class="value">{{ $quotation->quotation_date->format('M d, Y') }}</span></div>
+@if($quotation->valid_until)
+    <div class="row"><span class="label">Valid Until:</span><span class="value">{{ $quotation->valid_until->format('M d, Y') }}</span></div>
+@endif
+<div class="row"><span class="label">Prepared For:</span><span class="value">{{ $quotation->customer->full_name }}</span></div>
 
 <div class="rule"></div>
 
-<div class="item-desc">Payment for invoice {{ $receipt->payment->invoice->invoice_number }}</div>
-<div class="row"><span class="label">Method:</span><span class="value">{{ $receipt->payment->payment_method }}</span></div>
-@if($receipt->payment->reference_number)
-    <div class="row"><span class="label">Reference:</span><span class="value">{{ $receipt->payment->reference_number }}</span></div>
+@foreach($quotation->items as $item)
+    <div class="item-row">
+        <div class="item-desc bold">{{ $item->item_name }}</div>
+        <div class="row">
+            <span class="label">{{ $item->quantity }} x {{ $currencyFormatter->formatValue($item->unit_price, 2, $quotation->currency) }}</span>
+            <span class="value">{{ $currencyFormatter->formatValue($item->line_total, 2, $quotation->currency) }}</span>
+        </div>
+    </div>
+@endforeach
+
+<div class="rule"></div>
+
+<div class="row"><span class="label">Subtotal:</span><span class="value">{{ $currencyFormatter->formatValue($quotation->subtotal_amount, 2, $quotation->currency) }}</span></div>
+@if($quotation->discount_amount > 0)
+    <div class="row"><span class="label">Discount:</span><span class="value">-{{ $currencyFormatter->formatValue($quotation->discount_amount, 2, $quotation->currency) }}</span></div>
+@endif
+@if($quotation->tax_amount > 0)
+    <div class="row"><span class="label">Tax:</span><span class="value">{{ $currencyFormatter->formatValue($quotation->tax_amount, 2, $quotation->currency) }}</span></div>
 @endif
 
 <div class="rule-solid"></div>
 
 <div class="amount-box">
-    <div class="row"><span class="label">AMOUNT RECEIVED</span><span class="value">{{ $currencyFormatter->formatValue($receipt->payment->amount, 2) }}</span></div>
+    <div class="row"><span class="label">TOTAL</span><span class="value">{{ $currencyFormatter->formatValue($quotation->total_amount, 2, $quotation->currency) }}</span></div>
 </div>
-
-@if($receipt->payment->invoice->balance_due > 0)
-    <div class="rule"></div>
-    <div class="row bold"><span class="label">REMAINING BALANCE</span><span class="value">{{ $currencyFormatter->formatValue($receipt->payment->invoice->balance_due, 2) }}</span></div>
-@endif
 
 <div class="rule-solid"></div>
 

@@ -46,6 +46,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('quotations/{quotation}/send', [QuotationController::class, 'send'])->name('quotations.send');
     Route::post('quotations/{quotation}/convert', [QuotationController::class, 'convert'])->name('quotations.convert');
     Route::get('quotations/{quotation}/print', [QuotationController::class, 'print'])->name('quotations.print');
+    Route::get('quotations/{quotation}/print-thermal', [QuotationController::class, 'printThermal'])->name('quotations.print.thermal');
     Route::get('quotations/{quotation}/pdf', [QuotationController::class, 'downloadPdf'])->name('quotations.pdf');
 
     // Invoices
@@ -53,6 +54,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('invoices/{invoice}/issue', [InvoiceController::class, 'issue'])->name('invoices.issue');
     Route::post('invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
+    Route::get('invoices/{invoice}/print-thermal', [InvoiceController::class, 'printThermal'])->name('invoices.print.thermal');
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoices.pdf');
 
     // Payments

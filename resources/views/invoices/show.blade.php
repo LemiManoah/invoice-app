@@ -57,6 +57,18 @@
                 <a href="{{ route('invoices.print', $invoice) }}" target="_blank" rel="noopener" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition">
                     <i class="fas fa-print mr-2"></i> Print
                 </a>
+                <div x-data="{ open: false }" class="relative">
+                    <button type="button" @click="open = !open" @click.outside="open = false"
+                        class="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+                        <i class="fas fa-receipt mr-2"></i> Thermal Print
+                    </button>
+                    <div x-show="open" x-cloak x-transition class="absolute right-0 z-20 mt-2 w-40 rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                        <a href="{{ route('invoices.print.thermal', ['invoice' => $invoice, 'size' => 80]) }}" target="_blank" rel="noopener"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">80mm Roll</a>
+                        <a href="{{ route('invoices.print.thermal', ['invoice' => $invoice, 'size' => 58]) }}" target="_blank" rel="noopener"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">58mm Roll</a>
+                    </div>
+                </div>
             @endcan
 
             @can('cancel', $invoice)

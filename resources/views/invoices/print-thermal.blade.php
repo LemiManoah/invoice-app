@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Receipt {{ $receipt->receipt_number }}</title>
+    <title>Invoice {{ $invoice->invoice_number }}</title>
     <script>window.addEventListener('load', () => window.print());</script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,6 +36,7 @@
         .row .label { white-space: nowrap; }
         .row .value { text-align: right; word-break: break-word; }
 
+        .item-row { margin-bottom: 1.2mm; }
         .item-desc { margin-bottom: 0.6mm; word-break: break-word; }
 
         .amount-box { margin-top: 2mm; padding: 1.5mm 0; }
@@ -68,31 +69,51 @@
 </div>
 
 <div class="rule-solid"></div>
-<div class="center bold">RECEIPT</div>
+<div class="center bold">INVOICE</div>
 <div class="rule"></div>
 
-<div class="row"><span class="label">Receipt #:</span><span class="value">{{ $receipt->receipt_number }}</span></div>
-<div class="row"><span class="label">Date:</span><span class="value">{{ $receipt->issued_date->format('M d, Y') }}</span></div>
-<div class="row"><span class="label">Invoice #:</span><span class="value">{{ $receipt->payment->invoice->invoice_number }}</span></div>
-<div class="row"><span class="label">Received From:</span><span class="value">{{ $receipt->payment->invoice->customer->full_name }}</span></div>
+<div class="row"><span class="label">Invoice #:</span><span class="value">{{ $invoice->invoice_number }}</span></div>
+<div class="row"><span class="label">Date:</span><span class="value">{{ $invoice->invoice_date->format('M d, Y') }}</span></div>
+<div class="row"><span class="label">Due:</span><span class="value">{{ $invoice->due_date ? $invoice->due_date->format('M d, Y') : 'On receipt' }}</span></div>
+<div class="row"><span class="label">Bill To:</span><span class="value">{{ $invoice->customer->full_name }}</span></div>
 
 <div class="rule"></div>
 
-<div class="item-desc">Payment for invoice {{ $receipt->payment->invoice->invoice_number }}</div>
-<div class="row"><span class="label">Method:</span><span class="value">{{ $receipt->payment->payment_method }}</span></div>
-@if($receipt->payment->reference_number)
-    <div class="row"><span class="label">Reference:</span><span class="value">{{ $receipt->payment->reference_number }}</span></div>
+@foreach($invoice->items as $item)
+    <div class="item-row">
+        <div class="item-desc bold">{{ $item->item_name }}</div>
+        <div class="row">
+            <span class="label">{{ $item->quantity }} x {{ $currencyFormatter->formatValue($item->unit_price, 2, $invoice->currency) }}</span>
+            <span class="value">{{ $currencyFormatter->formatValue($item->line_total, 2, $invoice->currency) }}</span>
+        </div>
+    </div>
+@endforeach
+
+<div class="rule"></div>
+
+<div class="row"><span class="label">Subtotal:</span><span class="value">{{ $currencyFormatter->formatValue($invoice->subtotal_amount, 2, $invoice->currency) }}</span></div>
+@if($invoice->discount_amount > 0)
+    <div class="row"><span class="label">Discount:</span><span class="value">-{{ $currencyFormatter->formatValue($invoice->discount_amount, 2, $invoice->currency) }}</span></div>
+@endif
+@if($invoice->tax_amount > 0)
+    <div class="row"><span class="label">Tax:</span><span class="value">{{ $currencyFormatter->formatValue($invoice->tax_amount, 2, $invoice->currency) }}</span></div>
 @endif
 
 <div class="rule-solid"></div>
 
 <div class="amount-box">
-    <div class="row"><span class="label">AMOUNT RECEIVED</span><span class="value">{{ $currencyFormatter->formatValue($receipt->payment->amount, 2) }}</span></div>
+    <div class="row"><span class="label">TOTAL</span><span class="value">{{ $currencyFormatter->formatValue($invoice->total_amount, 2, $invoice->currency) }}</span></div>
 </div>
 
-@if($receipt->payment->invoice->balance_due > 0)
+@if($invoice->amount_paid > 0)
+    <div class="row"><span class="label">Paid:</span><span class="value">{{ $currencyFormatter->formatValue($invoice->amount_paid, 2, $invoice->currency) }}</span></div>
+@endif
+
+@if($invoice->balance_due > 0)
     <div class="rule"></div>
-    <div class="row bold"><span class="label">REMAINING BALANCE</span><span class="value">{{ $currencyFormatter->formatValue($receipt->payment->invoice->balance_due, 2) }}</span></div>
+    <div class="amount-box">
+        <div class="row"><span class="label">BALANCE DUE</span><span class="value">{{ $currencyFormatter->formatValue($invoice->balance_due, 2, $invoice->currency) }}</span></div>
+    </div>
 @endif
 
 <div class="rule-solid"></div>

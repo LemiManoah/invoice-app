@@ -37,7 +37,7 @@ final readonly class InvoiceController extends Controller implements HasMiddlewa
             new Middleware('permission:invoices.update', only: ['edit', 'update']),
             new Middleware('permission:invoices.issue', only: ['issue']),
             new Middleware('permission:invoices.cancel', only: ['cancel']),
-            new Middleware('permission:invoices.print', only: ['print', 'downloadPdf']),
+            new Middleware('permission:invoices.print', only: ['print', 'printThermal', 'downloadPdf']),
         ];
     }
 
@@ -169,6 +169,18 @@ final readonly class InvoiceController extends Controller implements HasMiddlewa
         $invoice->load(['customer', 'items']);
 
         return view('invoices.print', compact('invoice'));
+    }
+
+    public function printThermal(Request $request, Invoice $invoice): View
+    {
+        $this->authorize('print', $invoice);
+
+        $invoice->load(['customer', 'items']);
+
+        $paperWidth = (int) $request->query('size', 80);
+        $paperWidth = in_array($paperWidth, [58, 80], true) ? $paperWidth : 80;
+
+        return view('invoices.print-thermal', compact('invoice', 'paperWidth'));
     }
 
     public function downloadPdf(Invoice $invoice): Response

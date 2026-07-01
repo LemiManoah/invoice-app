@@ -32,7 +32,7 @@ final readonly class QuotationController extends Controller implements HasMiddle
             new Middleware('permission:quotations.send', only: ['send']),
             new Middleware('permission:quotations.convert', only: ['convert']),
             new Middleware('permission:quotations.delete', only: ['destroy']),
-            new Middleware('permission:quotations.print', only: ['print', 'downloadPdf']),
+            new Middleware('permission:quotations.print', only: ['print', 'printThermal', 'downloadPdf']),
         ];
     }
 
@@ -247,6 +247,18 @@ final readonly class QuotationController extends Controller implements HasMiddle
         $quotation->load(['customer', 'items', 'currency']);
 
         return view('quotations.print', compact('quotation'));
+    }
+
+    public function printThermal(Request $request, Quotation $quotation): View
+    {
+        $this->authorize('print', $quotation);
+
+        $quotation->load(['customer', 'items', 'currency']);
+
+        $paperWidth = (int) $request->query('size', 80);
+        $paperWidth = in_array($paperWidth, [58, 80], true) ? $paperWidth : 80;
+
+        return view('quotations.print-thermal', compact('quotation', 'paperWidth'));
     }
 
     public function downloadPdf(Quotation $quotation): Response
