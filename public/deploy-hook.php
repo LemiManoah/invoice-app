@@ -51,13 +51,38 @@ if (empty($envValues['APP_KEY']) || $envValues['APP_KEY'] === '') {
     $envValues['APP_KEY'] = $newKey;
 }
 
-// ── 5. Bootstrap Laravel console kernel ──────────────────────────────────────
+// ── 5. Ensure SQLite database file exists (if using SQLite) ──────────────────
+if (($envValues['DB_CONNECTION'] ?? '') === 'sqlite') {
+    $dbValue = $envValues['DB_DATABASE'] ?? 'database.sqlite';
+
+    // Mirror config/database.php: absolute paths used as-is, relative paths
+    // are resolved under the database/ directory (same as database_path()).
+    if ($dbValue === '' || $dbValue === ':memory:') {
+        $dbFile = null; // in-memory or empty — nothing to create
+    } elseif ($dbValue[0] === '/' || $dbValue[0] === '\\' ||
+              (strlen($dbValue) > 2 && ctype_alpha($dbValue[0]) && $dbValue[1] === ':')) {
+        $dbFile = $dbValue; // already absolute
+    } else {
+        $dbFile = __DIR__ . '/../database/' . $dbValue;
+    }
+
+    if ($dbFile !== null && !file_exists($dbFile)) {
+        $dbDir = dirname($dbFile);
+        if (!is_dir($dbDir)) {
+            mkdir($dbDir, 0755, true);
+        }
+        touch($dbFile);
+        chmod($dbFile, 0664);
+    }
+}
+
+// ── 6. Bootstrap Laravel console kernel ──────────────────────────────────────
 require __DIR__ . '/../vendor/autoload.php';
 
 $app    = require_once __DIR__ . '/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 
-// ── 6. Run deployment commands in order ──────────────────────────────────────
+// ── 7. Run deployment commands in order ──────────────────────────────────────
 //
 //  ORDER MATTERS:
 //   a) migrate first  — new tables/columns exist before cache is built

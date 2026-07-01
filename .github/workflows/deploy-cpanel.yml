@@ -132,6 +132,9 @@ jobs:
               --exclude-glob .phpunit.cache \
               --exclude-glob .env \
               --exclude-glob .env.* \
+              --exclude-glob 'database/*.sqlite' \
+              --exclude-glob 'database/*.sqlite-shm' \
+              --exclude-glob 'database/*.sqlite-wal' \
               --exclude-glob public/hot \
               --exclude-glob public/storage \
               --exclude-glob 'storage/logs/*.log' \
