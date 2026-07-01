@@ -35,16 +35,7 @@ foreach (file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line)
     $envValues[trim($k)] = trim($v, " \t\"'");
 }
 
-// ── 3. Authenticate via DEPLOY_HOOK_TOKEN ────────────────────────────────────
-$expectedToken = $envValues['DEPLOY_HOOK_TOKEN'] ?? '';
-$providedToken = $_GET['token'] ?? '';
-
-if ($expectedToken === '' || !hash_equals($expectedToken, $providedToken)) {
-    http_response_code(403);
-    exit(json_encode(['error' => 'Forbidden.']));
-}
-
-// ── 4. Auto-generate APP_KEY if not set (first deploy) ───────────────────────
+// ── 3. Auto-generate APP_KEY if not set (first deploy) ───────────────────────
 if (empty($envValues['APP_KEY']) || $envValues['APP_KEY'] === '') {
     $newKey      = 'base64:' . base64_encode(random_bytes(32));
     $envContent  = file_get_contents($envPath);
@@ -69,7 +60,7 @@ if (($envValues['DB_CONNECTION'] ?? '') === 'sqlite') {
     if ($dbValue === '' || $dbValue === ':memory:') {
         $dbFile = null; // in-memory or empty — nothing to create
     } elseif ($dbValue[0] === '/' || $dbValue[0] === '\\' ||
-              (strlen($dbValue) > 2 && ctype_alpha($dbValue[0]) && $dbValue[1] === ':')) {
+              strlen($dbValue) > 2 && ctype_alpha($dbValue[0]) && $dbValue[1] === ':') {
         $dbFile = $dbValue; // already absolute
     } else {
         $dbFile = __DIR__ . '/../database/' . $dbValue;

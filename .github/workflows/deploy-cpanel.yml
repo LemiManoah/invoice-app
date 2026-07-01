@@ -19,7 +19,6 @@ jobs:
       FTP_PASSWORD:          ${{ secrets.FTP_PASSWORD }}
       FTP_SERVER_DIR:        ${{ secrets.FTP_SERVER_DIR }}
       DEPLOY_HOOK_URL:       ${{ secrets.DEPLOY_HOOK_URL }}
-      DEPLOY_HOOK_TOKEN:     ${{ secrets.DEPLOY_HOOK_TOKEN }}
 
     steps:
 
@@ -176,7 +175,7 @@ jobs:
             --retry 3 \
             --retry-delay 5 \
             --write-out "\n%{http_code}" \
-            "${{ env.DEPLOY_HOOK_URL }}?token=${{ env.DEPLOY_HOOK_TOKEN }}")
+            "${{ env.DEPLOY_HOOK_URL }}")
 
           HTTP_BODY=$(echo "$HTTP_RESPONSE" | head -n -1)
           HTTP_CODE=$(echo "$HTTP_RESPONSE" | tail -n 1)
