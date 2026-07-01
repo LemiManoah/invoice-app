@@ -79,6 +79,18 @@
                                             class="inline-flex items-center rounded-md border border-blue-200 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/30">
                                             Print
                                         </a>
+                                        <div x-data="{ open: false }" class="relative inline-block">
+                                            <button type="button" @click="open = !open" @click.outside="open = false"
+                                                class="inline-flex items-center rounded-md border border-purple-200 px-2.5 py-1.5 text-xs font-medium text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-300 dark:hover:bg-purple-900/30">
+                                                Thermal
+                                            </button>
+                                            <div x-show="open" x-cloak x-transition class="absolute right-0 z-20 mt-1 w-32 rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                                                <a href="{{ route('invoices.print.thermal', ['invoice' => $invoice, 'size' => 80]) }}" target="_blank" rel="noopener"
+                                                    class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">80mm Roll</a>
+                                                <a href="{{ route('invoices.print.thermal', ['invoice' => $invoice, 'size' => 58]) }}" target="_blank" rel="noopener"
+                                                    class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">58mm Roll</a>
+                                            </div>
+                                        </div>
                                     @endcan
                                     @can('update', $invoice)
                                         @if($invoice->status === 'draft')
