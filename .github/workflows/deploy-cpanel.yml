@@ -14,11 +14,12 @@ jobs:
 
     # All secrets surfaced as env vars so the linter knows about them
     env:
-      FTP_HOST:           ${{ secrets.FTP_HOST }}
-      FTP_USERNAME:       ${{ secrets.FTP_USERNAME }}
-      FTP_PASSWORD:       ${{ secrets.FTP_PASSWORD }}
-      FTP_SERVER_DIR:     ${{ secrets.FTP_SERVER_DIR }}
-      DEPLOY_HOOK_URL:    ${{ secrets.DEPLOY_HOOK_URL }}
+      FTP_HOST:              ${{ secrets.FTP_HOST }}
+      FTP_USERNAME:          ${{ secrets.FTP_USERNAME }}
+      FTP_PASSWORD:          ${{ secrets.FTP_PASSWORD }}
+      FTP_SERVER_DIR:        ${{ secrets.FTP_SERVER_DIR }}
+      DEPLOY_HOOK_URL:       ${{ secrets.DEPLOY_HOOK_URL }}
+      DEPLOY_HOOK_TOKEN:     ${{ secrets.DEPLOY_HOOK_TOKEN }}
 
     steps:
 
@@ -106,6 +107,16 @@ jobs:
       - name: Remove node_modules before upload
         run: rm -rf node_modules
 
+      # git checkout stamps every file with the current time, so without this
+      # step lftp's --only-newer would see every file as "new" and re-upload
+      # the entire project on every deploy. git-restore-mtime sets each file's
+      # mtime to the last commit that actually changed it, so only genuinely
+      # modified files are transferred.
+      - name: Restore file timestamps from git history
+        run: |
+          pip install git-restore-mtime --quiet
+          git restore-mtime
+
       - name: Upload files via lftp
         env:
           FTP_HOST:       ${{ env.FTP_HOST }}
@@ -165,7 +176,7 @@ jobs:
             --retry 3 \
             --retry-delay 5 \
             --write-out "\n%{http_code}" \
-            "${{ env.DEPLOY_HOOK_URL }}")
+            "${{ env.DEPLOY_HOOK_URL }}?token=${{ env.DEPLOY_HOOK_TOKEN }}")
 
           HTTP_BODY=$(echo "$HTTP_RESPONSE" | head -n -1)
           HTTP_CODE=$(echo "$HTTP_RESPONSE" | tail -n 1)
