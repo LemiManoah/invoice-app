@@ -98,6 +98,11 @@ class Invoice extends Model
         return $this->status !== 'cancelled' && $this->validPayments()->doesntExist();
     }
 
+    public function canBeDeleted(): bool
+    {
+        return $this->status === 'draft';
+    }
+
     public function shouldBeOverdue(CarbonInterface $date): bool
     {
         return $this->due_date !== null

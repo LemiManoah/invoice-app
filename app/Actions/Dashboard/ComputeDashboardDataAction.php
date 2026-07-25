@@ -47,6 +47,62 @@ final readonly class ComputeDashboardDataAction
             'recent_orders' => $canViewOrders ? Order::query()->with('customer')->latest()->take(5)->get() : collect(),
             'recent_invoices' => $canViewInvoices ? Invoice::query()->with('customer')->latest()->take(5)->get() : collect(),
             'recent_payments' => $canViewPayments ? Payment::query()->with('invoice.customer')->where('status', 'valid')->latest()->take(5)->get() : collect(),
+            'invoices_chart' => $canViewInvoices ? $this->invoicesIssuedLast30Days($today) : ['labels' => [], 'values' => []],
+            'payments_chart' => $canViewPayments ? $this->paymentsCollectedLast30Days($today) : ['labels' => [], 'values' => []],
         ];
+    }
+
+    /**
+     * @return array{labels: array<int, string>, values: array<int, int>}
+     */
+    private function invoicesIssuedLast30Days(Carbon $today): array
+    {
+        $start = $today->copy()->subDays(29);
+
+        $counts = Invoice::query()
+            ->whereNotNull('issued_at')
+            ->whereBetween('issued_at', [$start->copy()->startOfDay(), $today->copy()->endOfDay()])
+            ->selectRaw('date(issued_at) as day, count(*) as total')
+            ->groupBy('day')
+            ->pluck('total', 'day');
+
+        $labels = [];
+        $values = [];
+
+        for ($date = $start->copy(); $date->lte($today); $date->addDay()) {
+            $labels[] = $date->format('M d');
+            $values[] = (int) ($counts[$date->format('Y-m-d')] ?? 0);
+        }
+
+        return ['labels' => $labels, 'values' => $values];
+    }
+
+    /**
+     * @return array{labels: array<int, string>, values: array<int, float>}
+     */
+    private function paymentsCollectedLast30Days(Carbon $today): array
+    {
+        $start = $today->copy()->subDays(29);
+        $currencyManager = app(CurrencyManager::class);
+
+        $totalsByDay = Payment::query()
+            ->with('currency')
+            ->where('status', 'valid')
+            ->whereBetween('payment_date', [$start->copy()->startOfDay(), $today->copy()->endOfDay()])
+            ->get()
+            ->groupBy(fn (Payment $payment) => $payment->payment_date->format('Y-m-d'))
+            ->map(fn ($payments) => $payments->sum(
+                fn (Payment $payment) => $currencyManager->convertValue($payment->amount, $payment->currency)
+            ));
+
+        $labels = [];
+        $values = [];
+
+        for ($date = $start->copy(); $date->lte($today); $date->addDay()) {
+            $labels[] = $date->format('M d');
+            $values[] = (float) ($totalsByDay[$date->format('Y-m-d')] ?? 0);
+        }
+
+        return ['labels' => $labels, 'values' => $values];
     }
 }

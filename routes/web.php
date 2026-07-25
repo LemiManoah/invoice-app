@@ -50,7 +50,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('quotations/{quotation}/pdf', [QuotationController::class, 'downloadPdf'])->name('quotations.pdf');
 
     // Invoices
-    Route::resource('invoices', InvoiceController::class)->except(['destroy']);
+    Route::resource('invoices', InvoiceController::class);
     Route::post('invoices/{invoice}/issue', [InvoiceController::class, 'issue'])->name('invoices.issue');
     Route::post('invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');

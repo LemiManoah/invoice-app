@@ -76,6 +76,14 @@
                     <i class="fas fa-times mr-2"></i> Cancel
                 </button>
             @endcan
+
+            @can('delete', $invoice)
+                <button type="button"
+                    @click="$dispatch('open-delete-modal', { url: '{{ route('invoices.destroy', $invoice) }}', item: 'invoice {{ $invoice->invoice_number }}' })"
+                    class="px-4 py-2 border border-red-200 bg-white dark:bg-gray-800 text-red-600 dark:text-red-400 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 dark:border-red-800 transition">
+                    <i class="fas fa-trash mr-2"></i> Delete
+                </button>
+            @endcan
         </div>
     </div>
 

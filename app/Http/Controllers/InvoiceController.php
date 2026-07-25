@@ -38,6 +38,7 @@ final readonly class InvoiceController extends Controller implements HasMiddlewa
             new Middleware('permission:invoices.issue', only: ['issue']),
             new Middleware('permission:invoices.cancel', only: ['cancel']),
             new Middleware('permission:invoices.print', only: ['print', 'printThermal', 'downloadPdf']),
+            new Middleware('permission:invoices.delete', only: ['destroy']),
         ];
     }
 
@@ -160,6 +161,16 @@ final readonly class InvoiceController extends Controller implements HasMiddlewa
         $action->handle($invoice, $request->validated('cancellation_reason'));
 
         return back()->with('success', 'Invoice cancelled successfully.');
+    }
+
+    public function destroy(Invoice $invoice): RedirectResponse
+    {
+        $this->authorize('delete', $invoice);
+
+        $invoice->items()->delete();
+        $invoice->delete();
+
+        return to_route('invoices.index')->with('success', 'Invoice deleted.');
     }
 
     public function print(Invoice $invoice): View

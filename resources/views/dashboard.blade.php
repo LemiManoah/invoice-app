@@ -110,7 +110,11 @@
         <!-- Invoices Chart -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <h2 class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Invoices Issued (Last 30 Days)</h2>
-            <canvas id="invoicesChart" class="w-full h-64"></canvas>
+            <div class="relative h-64">
+                <canvas id="invoicesChart"
+                    data-labels="{{ json_encode($invoices_chart['labels']) }}"
+                    data-values="{{ json_encode($invoices_chart['values']) }}"></canvas>
+            </div>
         </div>
         @endcan
 
@@ -118,11 +122,14 @@
         <!-- Payments Chart -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <h2 class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Payments Collected (Last 30 Days)</h2>
-            <canvas id="paymentsChart" class="w-full h-64"></canvas>
+            <div class="relative h-64">
+                <canvas id="paymentsChart"
+                    data-labels="{{ json_encode($payments_chart['labels']) }}"
+                    data-values="{{ json_encode($payments_chart['values']) }}"></canvas>
+            </div>
         </div>
         @endcan
-
-
+    </div>
 
     @canany(['orders.view', 'payments.view'])
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -190,4 +197,6 @@
 
     </div>
     @endcanany
+
+    @vite('resources/js/dashboard-charts.js')
 </x-layouts.app>

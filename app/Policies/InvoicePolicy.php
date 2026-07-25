@@ -43,4 +43,9 @@ final readonly class InvoicePolicy
     {
         return $user->can('invoices.print');
     }
+
+    public function delete(User $user, Invoice $invoice): bool
+    {
+        return $user->can('invoices.delete') && $invoice->canBeDeleted();
+    }
 }

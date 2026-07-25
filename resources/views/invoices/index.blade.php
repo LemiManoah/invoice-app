@@ -100,6 +100,13 @@
                                             </a>
                                         @endif
                                     @endcan
+                                    @can('delete', $invoice)
+                                        <button type="button"
+                                            @click="$dispatch('open-delete-modal', { url: '{{ route('invoices.destroy', $invoice) }}', item: 'invoice {{ $invoice->invoice_number }}' })"
+                                            class="inline-flex items-center rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30">
+                                            Delete
+                                        </button>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
