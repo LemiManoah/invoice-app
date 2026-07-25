@@ -1,0 +1,20 @@
+User Manual
+
+1. Getting Started
+- Open the invoice application.
+- Log in with your credentials.
+- Navigate to the main dashboard.
+
+2. Creating an Invoice
+- Click 'New Invoice'.
+- Enter customer details and items.
+- Review totals and save the invoice.
+
+3. Managing Invoices
+- View existing invoices from the dashboard.
+- Edit or delete invoices as needed.
+- Export invoices for records.
+
+4. Support
+- Check the help section for FAQs.
+- Contact support if you need assistance.
